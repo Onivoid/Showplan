@@ -71,7 +71,17 @@ Generating the map does not depend on the bar. **Change** on a blueprint is not 
 
 ## A note for later chats
 
-Cursor has no personal, uncommitted file like Claude Code's `CLAUDE.local.md`, and `AGENTS.md` is shared with your team, so Showplan does not write either. After the first map it can offer a personal rule at `.cursor/rules/showplan.mdc` that tells later chats to look the map up first. It is added only if you say yes, and the file is listed in `.git/info/exclude` so it is not committed. Delete the file, or put `<!-- floorplan:off -->` in it, to stop updates.
+Cursor has no personal, uncommitted file like Claude Code's `CLAUDE.local.md`, and `AGENTS.md` is shared with your team, so Showplan does not write either. After the first map it can offer a personal rule at `.cursor/rules/floorplan.mdc` that tells later chats to look the map up first. It is added only if you say yes, and the file is listed in `.git/info/exclude` so it is not committed. Delete the file, or put `<!-- floorplan:off -->` in it, to stop updates.
+
+## Audience exports
+
+To share a sanitized map (Public / Team / Serverless / custom audience), ask in chat, for example:
+
+> Export this showplan for public in French.
+
+The agent clarifies the goal if needed, runs `export.mjs --prepare`, rewrites names for the audience and language into `floorplan/export-sanitize.json`, then exports a static HTML file. Historical Recent work can come from GitHub Releases via `releases.mjs`. See `skills/showplan/references/export.md`.
+
+The map’s **Export** button still offers a quick Serverless/Local download; Public/custom are best done through the skill so wording matches the audience.
 
 ## What's different from Claude Code and Codex
 

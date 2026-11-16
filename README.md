@@ -15,7 +15,7 @@ Your coding agent (Cursor, Claude Code or Codex) reads your codebase and draws a
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-D97757?style=flat-square)](https://code.claude.com/docs/en/overview)
 [![Codex plugin](https://img.shields.io/badge/Codex-plugin-111?style=flat-square)](docs/codex.md)
 [![Tests](https://img.shields.io/github/actions/workflow/status/Onivoid/Showplan/test.yml?branch=main&style=flat-square&label=tests)](https://github.com/Onivoid/Showplan/actions/workflows/test.yml)
-[![Version](https://img.shields.io/badge/version-0.11.0-111?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.2.0-111?style=flat-square)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-111?style=flat-square)](LICENSE)
 [![Node 18+](https://img.shields.io/badge/node-%E2%89%A518-111?style=flat-square)](https://nodejs.org)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-0-111?style=flat-square)](#how-it-works)
@@ -120,7 +120,9 @@ Updates re-read only what changed, and an open map reloads itself. Everything ru
 </tr>
 </table>
 
-Plus guided **flows** you can request in plain words, a one-minute **Start here** tour, **Export** to send a copy to anyone as one HTML file, a layout for **phones and tablets** with drag and pinch, search, keyboard shortcuts, and right-click actions on every card.
+Plus guided **flows** you can request in plain words, a one-minute **Start here** tour, **audience Export** (Public / Team / Serverless / custom) as one sanitized HTML file in your language, a layout for **phones and tablets** with drag and pinch, search, keyboard shortcuts, and right-click actions on every card.
+
+**Audience exports:** ask *Export this showplan for public in French* (or Team / Serverless / a custom audience description). The skill clarifies the goal if needed, sanitizes for that reader, and writes a static HTML file without changing your personal map. Historical Recent work can follow GitHub Releases. See `skills/showplan/references/export.md`.
 
 ### Also: blueprints, for apps you haven't built yet
 

@@ -1,8 +1,15 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (2026-11-16)
 
-## 0.11.0 (2026-11-16)
+- **Audience exports:** share a sanitized static HTML map without touching your personal `floorplan/index.html`. Presets: **Public** (most sanitized), **Team**, **Serverless / Local**, plus a **custom** audience described in free text.
+- **Sanitize pass:** `export.mjs --prepare` writes `export-sanitize.json` for the agent to rewrite names and descriptions for that audience and language; structural sanitize then hides paths, symbols, route URLs, packages and health according to the audience profile.
+- **Export language:** choose `--language` (e.g. `fr`, `en`); repeat for multiple language versions of the same export.
+- **Map Export UI:** audience picker, language field and custom description; Public/custom point at the skill sanitize flow; Serverless/Team can download a structural copy via `serve.mjs`.
+- **Recent work on exports:** sanitized patch-note style Recent work included when selected. Tasks and items can link **commits**; a second mode uses **GitHub Releases** (`releases.mjs`, `mode: releases`) for historical notes.
+- **Docs:** [skills/showplan/references/export.md](skills/showplan/references/export.md), plus README / Cursor / SKILL notes.
+
+## 0.1.1 (2026-11-16)
 
 - **Showplan:** standalone rebrand of this project (skill name `showplan`, Cursor-first docs and install). The map folder stays `floorplan/` for upstream compatibility. Clear attribution to [Floorplan](https://github.com/haydenschmitty/floorplan) by Hayden Smith.
 - **Language:** the agent writes the whole map (labels, descriptions, tour, flows, recent work) in the user's language (or an explicit request), and may set `architecture.json` `"language"`.

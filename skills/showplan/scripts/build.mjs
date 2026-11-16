@@ -382,11 +382,25 @@ if (fs.existsSync(recentFile)) {
       scrubFields(t, ['title', 'request', 'summary', 'status'], 'recent-work.json', `tasks[${ti}]`);
       if (Array.isArray(t?.items)) t.items.forEach((it, ii) => scrubFields(it, ['note'], 'recent-work.json', `tasks[${ti}].items[${ii}]`));
       if (!isStr(t?.title)) return warn(`recent-work.json tasks[${ti}] needs a title`);
-      tasks.push({ title: t.title, request: isStr(t.request) ? t.request : '', summary: isStr(t.summary) ? t.summary : '', ...(isStr(t.status) ? { status: t.status } : {}) });
+      const taskCommits = Array.isArray(t.commits) ? t.commits.filter(isStr).map((c) => c.slice(0, 40)).slice(0, 20) : [];
+      tasks.push({
+        title: t.title,
+        request: isStr(t.request) ? t.request : '',
+        summary: isStr(t.summary) ? t.summary : '',
+        ...(isStr(t.status) ? { status: t.status } : {}),
+        ...(isStr(t.release) ? { release: t.release.slice(0, 100) } : {}),
+        ...(isStr(t.mode) && (t.mode === 'recent' || t.mode === 'releases') ? { mode: t.mode } : {}),
+        ...(taskCommits.length ? { commits: taskCommits } : {}),
+      });
       for (const it of Array.isArray(t.items) ? t.items : []) {
         const id = resolveRecent(it?.ref);
         if (!id) { missing.push(it?.ref); continue; }
-        items.push({ id, task: tasks.length - 1, change: it.change === 'new' ? 'new' : 'changed', note: isStr(it.note) ? it.note : '' });
+        const itemCommits = Array.isArray(it.commits) ? it.commits.filter(isStr).map((c) => c.slice(0, 40)).slice(0, 20) : [];
+        items.push({
+          id, task: tasks.length - 1, change: it.change === 'new' ? 'new' : 'changed', note: isStr(it.note) ? it.note : '',
+          ...(isStr(it.release) ? { release: it.release.slice(0, 100) } : {}),
+          ...(itemCommits.length ? { commits: itemCommits } : {}),
+        });
       }
     });
     if (missing.length) warn(`recent-work.json: ${missing.length} ref(s) aren't on the map and were left out (use a file path, a node id or "METHOD /path"): ${missing.slice(0, 5).map(String).join(', ')}${missing.length > 5 ? '…' : ''}`);
@@ -668,6 +682,12 @@ ${fs.readFileSync(path.join(SKILL_DIR, 'assets', 'query-cli.mjs'), 'utf8')}`);
 // read-only files here and the next build couldn't replace them. Removing first replaces one left that way.
 for (const name of ['serve.mjs', 'page-safety.mjs']) {
   const bytes = fs.readFileSync(path.join(SKILL_DIR, 'assets', name));
+  fs.rmSync(path.join(outDir, name), { force: true });
+  fs.writeFileSync(path.join(outDir, name), bytes);
+}
+// audience export helpers next to serve.mjs (same folder imports)
+for (const name of ['audience.mjs', 'sanitize-export.mjs']) {
+  const bytes = fs.readFileSync(path.join(HERE, 'lib', name));
   fs.rmSync(path.join(outDir, name), { force: true });
   fs.writeFileSync(path.join(outDir, name), bytes);
 }

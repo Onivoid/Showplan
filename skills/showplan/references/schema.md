@@ -127,11 +127,18 @@ Good candidates:
 | `tasks[].title` | 2–5 words, shown on hover and as the board title |
 | `tasks[].request` | what the user asked for, in their words (shortened). Shown as "You asked: …" |
 | `tasks[].summary` | 1–2 sentences: what was done toward it, and where it stands. Mention deletions here; deleted files aren't on the map |
+| `tasks[].mode` | optional `"recent"` (default / local changes) or `"releases"` (historical, from GitHub Releases) |
+| `tasks[].release` | optional release tag (e.g. `v1.2.0`) when the task comes from a release |
+| `tasks[].commits` | optional list of commit SHAs linked to this task |
 | `items[].ref` | a file path, a node id, or `"METHOD /path"` exactly as on the map. Refs that aren't on the map are left out with a warning |
 | `items[].change` | `"new"` or `"changed"` (default) |
 | `items[].note` | 1–2 plain sentences: what changed on this card, and how it serves the request |
+| `items[].commits` | optional commit SHAs for this card |
+| `items[].release` | optional release tag for this card |
 
 `{ "tasks": [] }` clears all highlights.
+
+**Two modes.** (1) **Recent** — current local work (conversation + `recent.mjs` facts). (2) **Releases** — historical patch notes from GitHub Releases via `releases.mjs` (lighter than full history). Both write the same `recent-work.json` shape.
 
 ## Full example
 

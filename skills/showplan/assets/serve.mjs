@@ -6,7 +6,9 @@
 // usage: node floorplan/serve.mjs [--port 4378] [--engine claude|codex] [--model <model>] [--claude <path>] [--codex <path>]
 //                                 [--editor <name or link>] [--no-open] [--idle-exit <minutes>]
 //        node floorplan/serve.mjs --stop
-//        node floorplan/serve.mjs --export [<file>] [--include flows,notes,recent,health]   (a copy to share; default flows,notes)
+//        node floorplan/serve.mjs --export [<file>] [--include flows,notes,recent,health]
+//             [--audience public|team|serverless] [--language fr] [--sanitize <file>]
+//             (a copy to share; default flows,notes. Audience sanitize needs audience.mjs beside this file.)
 //
 // The server listens on 127.0.0.1 only. Each question runs in the codebase root, on your own account:
 // `claude -p` with read-only tools (Read, Grep, Glob, and Bash limited to floorplan/query.mjs), or
@@ -53,31 +55,68 @@ const cleanDismissal = (d) => ({
 // ---------- export: a copy of the map to share ----------
 // The same self-contained page, marked as exported: no Ask bar, no requests for Claude or Codex, no links into
 // this computer, and only the extras asked for. Used by the map's Export button and by --export.
+// Optional --audience runs the structural sanitize (and export-sanitize.json overlay when present).
 const EXPORT_PARTS = ['flows', 'notes', 'recent', 'health'];
 const EXPORT_DEFAULT = ['flows', 'notes'];
 const DATA_START = '<script>window.FLOORPLAN = ';
-function exportMap(include, extraFlows = []) {
+async function loadSanitize() {
+  try {
+    const { sanitizeForExport } = await import('./sanitize-export.mjs');
+    return sanitizeForExport;
+  } catch {
+    return null;
+  }
+}
+function exportMap(include, extraFlows = [], opts = {}) {
   const html = fs.readFileSync(path.join(here, 'index.html'), 'utf8');
   const a = html.indexOf(DATA_START), b = html.indexOf(';</script>', a);
   if (a < 0 || b < 0) throw Object.assign(new Error('This map is too old to export. Ask Claude or Codex to update the floorplan first.'), { plain: true });
-  const g = JSON.parse(html.slice(a + DATA_START.length, b));
+  let g = JSON.parse(html.slice(a + DATA_START.length, b));
   const on = EXPORT_PARTS.filter((p) => include.includes(p));
-  const out = {
+  let out = {
     ...g,
     // the remote can carry a sign-in token; the folder path is this computer's
     meta: { ...g.meta, root: null, repos: (g.meta.repos || []).map(({ remote, ...r }) => r), exported: { at: new Date().toISOString(), include: on } },
-    flows: on.includes('flows') ? [...g.flows, ...extraFlows.filter((f) => !g.flows.some((x) => x.id === f.id))] : [],
+    flows: on.includes('flows') ? [...(g.flows || []), ...extraFlows.filter((f) => !(g.flows || []).some((x) => x.id === f.id))] : [],
     tour: on.includes('flows') ? g.tour : [],
-    files: on.includes('notes') ? g.files : g.files.map(({ note, ...f }) => f),
+    files: on.includes('notes') ? g.files : (g.files || []).map(({ note, ...f }) => f),
   };
   if (!on.includes('recent')) delete out.recent;
   if (!on.includes('health')) delete out.health;
   // dismissals made since the last build travel with the copy (the page applies them; no reasons, which are notes to self)
   else if (out.health) { const list = readDismissed().map(({ reason, ...d }) => d); if (list.length) out.health = { ...out.health, dismissed: list }; else delete out.health.dismissed; }
+
+  // Audience sanitize (Public / Team / Serverless): optional; personal export stays the default path above
+  if (opts.audience && opts.sanitizeForExport) {
+    let overlay = null;
+    const sanitizeFile = opts.sanitizeFile || path.join(here, 'export-sanitize.json');
+    if (fs.existsSync(sanitizeFile)) {
+      try { overlay = readJson(sanitizeFile); } catch (e) {
+        throw Object.assign(new Error(`Could not read export sanitize file: ${e.message}`), { plain: true });
+      }
+    }
+    const sanitized = opts.sanitizeForExport(out, {
+      audience: opts.audience,
+      audienceDescription: opts.audienceDescription,
+      language: opts.language,
+      include: on,
+      overlay,
+    });
+    out = sanitized.graph;
+  }
+
   const json = scriptJson(out);
   const slug = String(g.project?.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'floorplan';
+  const aud = opts.audience && /^[a-z0-9_-]+$/i.test(String(opts.audience)) ? `-${String(opts.audience).toLowerCase()}` : '';
+  const lang = opts.language ? `-${String(opts.language).toLowerCase()}` : '';
   // a copy to share talks to nothing: only its own scripts run (by hash), and it can't send anything anywhere
-  return { html: withPolicy(html.slice(0, a + DATA_START.length) + json + html.slice(b), 'export'), name: `${slug}-map.html`, include: on, plan: !!g.meta?.blueprint };
+  return {
+    html: withPolicy(html.slice(0, a + DATA_START.length) + json + html.slice(b), 'export'),
+    name: `${slug}${aud}${lang}-map.html`,
+    include: out.meta?.exported?.include || on,
+    plan: !!g.meta?.blueprint,
+    audience: out.meta?.exported?.audience || null,
+  };
 }
 /** Flows requested from the map since it was last built, as the page sends them: checked and trimmed. */
 const cleanFlows = (list) => (Array.isArray(list) ? list : []).slice(0, 50)
@@ -90,13 +129,26 @@ const cleanFlows = (list) => (Array.isArray(list) ? list : []).slice(0, 50)
 if (has('export')) {
   const dest = opt('export');
   const include = String(opt('include', EXPORT_DEFAULT.join(','))).split(',').map((s) => s.trim().toLowerCase());
+  const audience = opt('audience', '');
   try {
-    const x = exportMap(include);
+    const sanitizeForExport = audience ? await loadSanitize() : null;
+    if (audience && !sanitizeForExport) {
+      console.error('✗ Audience export needs audience.mjs and sanitize-export.mjs next to serve.mjs (rebuild the map).');
+      process.exit(1);
+    }
+    const x = exportMap(include, [], {
+      audience: audience || undefined,
+      audienceDescription: opt('description', ''),
+      language: opt('language', '') || undefined,
+      sanitizeFile: opt('sanitize', '') || undefined,
+      sanitizeForExport,
+    });
     const file = path.resolve(dest && !dest.startsWith('--') ? dest : path.join(here, x.name));
     fs.writeFileSync(file, x.html);
     console.log(`Exported the map to ${file}`);
     const label = { flows: 'flows and the tour', notes: 'notes', recent: 'recent work', health: x.plan ? 'the design review' : 'the health check' };
     console.log(`Includes: the map${x.include.map((p) => ', ' + label[p]).join('')}. One file that opens in any browser, with no Ask bar.`);
+    if (x.audience) console.log(`Audience: ${x.audience}`);
     if (x.include.includes('health') && !x.plan) console.log('It includes the health check: which endpoints are open and where secrets sit in the code (never their values). Share it only with people you trust.');
     process.exit(0);
   } catch (e) { console.error(`✗ Couldn't export the map: ${e.message}`); process.exit(1); }
@@ -781,10 +833,25 @@ const server = http.createServer((req, res) => {
     if (req.method === 'POST' && url.pathname === '/api/export') {
       let raw = '';
       req.on('data', (d) => { raw += d; if (raw.length > 500000) req.destroy(); });
-      req.on('end', () => {
+      req.on('end', async () => {
         let body = {}; try { body = JSON.parse(raw); } catch {}
         try {
-          const x = exportMap(Array.isArray(body.include) ? body.include.map(String) : EXPORT_DEFAULT, cleanFlows(body.flows));
+          const audience = body.audience ? String(body.audience) : '';
+          const sanitizeForExport = audience ? await loadSanitize() : null;
+          if (audience && !sanitizeForExport) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: 'Audience export needs a rebuilt map (missing sanitize helpers).' }));
+          }
+          const x = exportMap(
+            Array.isArray(body.include) ? body.include.map(String) : EXPORT_DEFAULT,
+            cleanFlows(body.flows),
+            {
+              audience: audience || undefined,
+              audienceDescription: body.audienceDescription ? String(body.audienceDescription) : undefined,
+              language: body.language ? String(body.language) : undefined,
+              sanitizeForExport,
+            },
+          );
           res.writeHead(200, { 'Content-Type': TYPES['.html'], 'Content-Disposition': `attachment; filename="${x.name}"`, 'Cache-Control': 'no-store' });
           res.end(x.html);
         } catch (e) {

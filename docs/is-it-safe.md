@@ -27,7 +27,8 @@ Asking questions on the map runs Claude Code or Codex, which talk to Anthropic o
 
 | Program | When | Why |
 |---|---|---|
-| `git` | scan | Read-only: which files are tracked, the current branch and commit, what changed since the last map |
+| `git` | scan; releases | Read-only: which files are tracked, the current branch and commit, what changed since the last map; listing tags when GitHub Releases aren't available |
+| `gh` | releases | Read-only: list and view GitHub Releases for historical Recent work (`releases.mjs`) |
 | `where` (Windows) or `which` | starting the map's server | Finding the Claude Code or Codex CLI |
 | `claude` or `codex` | when you ask a question on the map | Answering it, read-only: `claude -p` limited to reading files and Showplan's lookup script, or `codex exec --sandbox read-only` |
 | `node` | throughout | Running Showplan's own scripts |
@@ -37,7 +38,7 @@ Each is started directly with its arguments, never as a command line for a shell
 
 ### What runs without asking
 
-In Claude Code, while the skill is in use, it pre-approves one kind of command: `node` running one of its own scripts, each named exactly (`scripts/ask-poll.mjs`, `build.mjs`, `describe.mjs`, `open.mjs`, `plan.mjs`, `recent.mjs`, `refresh.mjs`, `scan.mjs` and `status.mjs`). `ask-poll.mjs` only talks to the map server on this computer. That list is fixed by the tests below. Anything else Claude does asks according to your permission settings, as usual. Codex and Cursor ask according to your approval settings. Cursor does not use that pre-approved list; the scripts it runs are the same ones.
+In Claude Code, while the skill is in use, it pre-approves one kind of command: `node` running one of its own scripts, each named exactly (`scripts/ask-poll.mjs`, `build.mjs`, `describe.mjs`, `export.mjs`, `open.mjs`, `plan.mjs`, `recent.mjs`, `refresh.mjs`, `releases.mjs`, `scan.mjs` and `status.mjs`). `ask-poll.mjs` only talks to the map server on this computer. That list is fixed by the tests below. Anything else Claude does asks according to your permission settings, as usual. Codex and Cursor ask according to your approval settings. Cursor does not use that pre-approved list; the scripts it runs are the same ones.
 
 ### The workflow file
 
@@ -52,6 +53,7 @@ In Claude Code, while the skill is in use, it pre-approves one kind of command: 
   ```
   Then compare `package/lib/elk.bundled.js` with Showplan's copy, for example with `sha256sum` (macOS: `shasum -a 256`; Windows PowerShell: `Get-FileHash`).
 - **One `new Function`** in `serve.mjs` loads the map's lookup code from `floorplan/query.mjs`, a file Showplan's build wrote into your project. It never runs anything from the network.
+- **One dynamic `import()`** in `serve.mjs` optionally loads `./sanitize-export.mjs` (copied next to `serve.mjs` by the build) for audience exports. It never loads a URL or anything from the network.
 - **Health reads the middle part of tokens it finds** (it decodes them from base64) to tell what kind of token each is, so it can skip ones that are public by design. It never stores or shows the token itself.
 
 ## Checked on every change

@@ -29,6 +29,8 @@
     .rw-note { margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--recent) 9%, transparent); font-size: 13px; line-height: 1.55; }
     .rw-note .rw-h { color: var(--recent); font-size: 11.5px; font-weight: 600; margin-bottom: 3px; }
     .rw-when { color: var(--text-3); font-size: 12px; margin-top: 4px; }
+    .rw-meta { color: var(--text-3); font-size: 12px; line-height: 1.45; margin: 6px 0 0 16px; }
+    .rw-meta a { color: var(--accent); }
   `;
   document.head.appendChild(style);
 
@@ -38,15 +40,25 @@
     return m < 2 ? 'just now' : m < 60 ? `${m} minutes ago` : m < 48 * 60 ? `${Math.round(m / 60)} hours ago` : `${Math.round(m / 1440)} days ago`;
   };
   const itemsOf = (ti) => items.filter((it) => ti == null || it.task === ti);
+  const shortSha = (c) => String(c || '').slice(0, 7);
+  const metaLine = (t) => {
+    const bits = [];
+    if (t.mode === 'releases') bits.push('From releases');
+    if (t.release) bits.push(`Release ${h(t.release)}`);
+    if (Array.isArray(t.commits) && t.commits.length) bits.push(t.commits.slice(0, 5).map(shortSha).map(h).join(', ') + (t.commits.length > 5 ? '…' : ''));
+    return bits.length ? `<div class="rw-meta">${bits.join(' · ')}</div>` : '';
+  };
 
   /** One board with just the changed cards (and how they connect), each with its note. */
   function showRecent(ti) {
     const one = ti != null ? tasks[ti] : tasks.length === 1 ? tasks[0] : null;
+    const releaseBit = one?.release ? `\n\nRelease: ${one.release}` : '';
+    const commitBit = one?.commits?.length ? `\nCommits: ${one.commits.map(shortSha).join(', ')}` : '';
     SC.showBoard({
       kind: 'Recent work', icon: 'recent',
       title: one ? one.title : 'Recent work',
-      question: one ? (one.request ? `You asked: ${one.request}` : '') : tasks.map((t) => t.title).join(' · '),
-      answer: one ? one.summary : tasks.map((t) => `**${t.title}.** ${t.summary}`).join('\n\n'),
+      question: one ? (one.request ? `You asked: ${one.request}` : (one.release ? `Release ${one.release}` : '')) : tasks.map((t) => t.title).join(' · '),
+      answer: (one ? one.summary : tasks.map((t) => `**${t.title}.** ${t.summary}`).join('\n\n')) + releaseBit + commitBit,
       items: itemsOf(ti != null ? ti : null).map((it) => ({ id: it.id, note: it.note || (it.change === 'new' ? 'New' : 'Changed') })),
     });
   }
@@ -64,6 +76,7 @@
       <div class="rw-task"><div class="rw-tt">${h(t.title)}</div>
         ${t.request ? `<div class="rw-q"><b>You asked:</b> ${h(t.request)}</div>` : ''}
         ${t.summary ? `<div class="rw-s">${h(t.summary)}</div>` : ''}
+        ${metaLine(t)}
         <div class="rw-a"><button class="btn soft" data-rw="${i}">${SC.iconI('recent')}Show ${SC.plural(itemsOf(i).length, 'card')}</button></div></div>` : '').join('')}</div></div>`,
     bind: (el) => el.querySelectorAll('[data-rw]').forEach((x) => x.addEventListener('click', () => showRecent(+x.dataset.rw))),
   }));

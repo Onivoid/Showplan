@@ -6,10 +6,12 @@ allowed-tools:
   - Bash(node ${CLAUDE_SKILL_DIR}/scripts/ask-poll.mjs *)
   - Bash(node ${CLAUDE_SKILL_DIR}/scripts/build.mjs *)
   - Bash(node ${CLAUDE_SKILL_DIR}/scripts/describe.mjs *)
+  - Bash(node ${CLAUDE_SKILL_DIR}/scripts/export.mjs *)
   - Bash(node ${CLAUDE_SKILL_DIR}/scripts/open.mjs *)
   - Bash(node ${CLAUDE_SKILL_DIR}/scripts/plan.mjs *)
   - Bash(node ${CLAUDE_SKILL_DIR}/scripts/recent.mjs *)
   - Bash(node ${CLAUDE_SKILL_DIR}/scripts/refresh.mjs *)
+  - Bash(node ${CLAUDE_SKILL_DIR}/scripts/releases.mjs *)
   - Bash(node ${CLAUDE_SKILL_DIR}/scripts/scan.mjs *)
   - Bash(node ${CLAUDE_SKILL_DIR}/scripts/status.mjs *)
 ---
@@ -184,15 +186,23 @@ The map has a floating Ask bar. The user types a question, and the agent answers
   Publishing uploads the map (paths, names, descriptions, structure), not the source code, to their private claude.ai account. Say that before you do it.
 - **Neither:** `floorplan/index.html` still opens directly in a browser. The Ask bar explains what's needed.
 
-### Sharing a copy
+### Sharing a copy (audience exports)
 
-When the user wants to send the map to someone (a teammate, a client, someone without Claude or Codex), export it. An export is the same single HTML file without the Ask bar, prompts for Claude or Codex, editor links, this machine's folder path or git remotes. The map's **Export** button does this from the browser; from here, run:
+When the user wants to send the map to someone, prefer an **audience export** so the sanitize matches who will read it. Read [references/export.md](references/export.md). Personal `floorplan/index.html` stays untouched.
 
-```
-node floorplan/serve.mjs --export [<file>] [--include flows,notes,recent,health]
-```
+**Categories:** `public` (most sanitized), `team` (simplified), `serverless` (almost full / local), or a **custom** free-text audience description.
 
-It writes `floorplan/<project>-map.html` unless given a file. `--include` defaults to `flows,notes` (flows and the tour, notes pinned to files); `recent` adds recent work and `health` adds the health check, or the design review on a blueprint. Leave health out unless the user asks for it, and if they do, say that it lists the endpoints anyone can use and where secrets sit in the code (never their values), so they should only send it to people they trust. Any export shows how the app fits together (every part, file and endpoint, with names and descriptions), but not the source code.
+1. **Clarify the objective** if needed (who, what they must see, what must stay hidden, language). Clarity of the goal matters more than the number of questions.
+2. **Prepare** the sanitize worksheet:
+   `node <skill folder>/scripts/export.mjs <root> --audience public --language <tag> --prepare`
+   (Use the audience id, or a quoted custom description; `--description` / `--base team` for customs.)
+3. **Sanitize pass:** edit `floorplan/export-sanitize.json` — rewrite labels, summaries, descriptions, tour/flow notes and Recent work as patch notes for that audience and language. Keep keys (node ids, file paths, `METHOD /path`) unchanged. Generalize tech names for public (Postgres → database, etc.).
+4. **Export:** `node <skill folder>/scripts/export.mjs <root> --audience public --language <tag>`
+   Writes a static HTML file under `floorplan/`. Repeat with another `--language` for multiple language versions.
+
+**Classic share** (no audience rewrite) still works: `node floorplan/serve.mjs --export [--include flows,notes,recent,health]`, or the map's **Export** button (Serverless / Local). Leave health out unless they ask; it lists open endpoints and where secrets sit (never values).
+
+**Recent work modes:** keep the current local Recent mode (`recent.mjs`). For historical patch notes, run `node <skill folder>/scripts/releases.mjs <root>` (GitHub Releases via `gh`, else git tags) and write `recent-work.json` with `"mode": "releases"`, optional `"release"` and `"commits"` (see schema).
 
 ### What else the map gives them (automatic)
 
