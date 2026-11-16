@@ -11,7 +11,9 @@ import { isUnattended } from './common.mjs';
 const yes = (v) => /^(1|true|yes)$/i.test(String(v || '').trim());
 const DETECT = {
   claude: () => false, // the default
-  cursor: (env) => yes(env.CURSOR_AGENT) || !!env.CURSOR_CONVERSATION_ID,
+  // Cursor agent sessions set these; checked before Codex. CURSOR_CLI alone is not enough
+  // (it can appear in Cursor's terminal when another agent is driving the session).
+  cursor: (env) => yes(env.CURSOR_AGENT) || !!(env.CURSOR_CONVERSATION_ID || env.CURSOR_REQUEST_ID),
   codex: (env) => !!(env.CODEX_THREAD_ID || env.CODEX_SESSION_ID),
   none: () => false, // only when asked for, or in unattended mode
 };

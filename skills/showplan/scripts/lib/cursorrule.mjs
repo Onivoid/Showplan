@@ -16,21 +16,21 @@ const REL = '.cursor/rules/floorplan.mdc';
 
 function block(mapRel) {
   return `${START}
-## Floorplan: map of this codebase
+## Showplan: map of this codebase
 
-\`${mapRel}/\` holds a map of this codebase: every module, file and endpoint with a plain-English name and a one-line description, and what connects to what. For questions like "where is X", "how does Y work" or "what uses Z", look it up before searching the code (run these from the folder this file is in):
+\`${mapRel}/\` holds a Showplan map of this codebase: every module, file and endpoint with a human-readable name and a one-line description (in the map's language), and what connects to what. For questions like "where is X", "how does Y work" or "what uses Z", look it up before searching the code (run these from the folder this file is in):
 
 - \`node ${mapRel}/query.mjs find "<words>"\`: modules, files and endpoints that match
 - \`node ${mapRel}/query.mjs show <file path | module id | "GET /path">\`: what it is, what it uses, what uses it
 - \`node ${mapRel}/query.mjs path <from> <to>\`: how two things connect
 - \`node ${mapRel}/query.mjs overview\`: the whole system at a glance
 
-The map can lag behind recent edits, so confirm in the code before changing anything. Open it with \`node ${mapRel}/serve.mjs\`. After big changes, update it when asked to "update the floorplan" (only changed files are re-read). Questions typed on the Ask bar wait on that server for this chat: leave the Floorplan skill's \`ask-poll.mjs\` running (the map's ASK line prints the command) and reply without editing files. The bar does not start Cursor.
+The map can lag behind recent edits, so confirm in the code before changing anything. Open it with \`node ${mapRel}/serve.mjs\`. After big changes, update it when asked to "update the showplan" (only changed files are re-read). Questions typed on the Ask bar wait on that server for this chat: leave the Showplan skill's \`ask-poll.mjs\` running (the map's ASK line prints the command) and reply without editing files. The bar does not start Cursor.
 ${END}`;
 }
 
 const FRONT = `---
-description: Look up this codebase on its Floorplan map before searching the code
+description: Look up this codebase on its Showplan map before searching the code
 alwaysApply: true
 ---
 `;
@@ -60,6 +60,6 @@ export function writeCursorRule(root, outDir, { add = false } = {}) {
     fs.writeFileSync(file, next);
     notes.push(`${old == null ? 'created' : 'updated'} ${REL}`);
   } else notes.push(`${REL} unchanged`);
-  notes.push(ignoreUncommitted(root, REL, 'personal Cursor rule (added by Floorplan)'));
+  notes.push(ignoreUncommitted(root, REL, 'personal Cursor rule (added by Showplan)'));
   return notes.join('; ');
 }

@@ -1,11 +1,11 @@
 {
-  "name": "floorplan",
+  "name": "showplan",
   "interface": {
-    "displayName": "Floorplan"
+    "displayName": "Showplan"
   },
   "plugins": [
     {
-      "name": "floorplan",
+      "name": "showplan",
       "source": {
         "source": "local",
         "path": "./"

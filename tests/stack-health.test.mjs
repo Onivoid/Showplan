@@ -202,7 +202,7 @@ test('a whole app: tables a loop covers are protected, ones it can’t name are 
     const byId = Object.fromEntries(issues.map((i) => [i.id.split(':')[0], i]));
     assert.equal(byId.rls.title, 'Anyone can read and change your payouts table');
     assert.equal(byId['rls-unsure'].severity, 'medium');
-    assert.equal(byId['rls-unsure'].title, 'Floorplan can’t tell whether your notes table is protected');
+    assert.equal(byId['rls-unsure'].title, 'Showplan can’t tell whether your notes table is protected');
     assert.deepEqual(byId['rls-unsure'].locations, [{ file: 'supabase/migrations/20250103000000_all.sql', line: 3 }]);
     assert.match(byId['rls-unsure'].fix, /- public\.notes: created in supabase\/migrations\/20250101000000_init\.sql:3/);
   } finally { cleanup(root); }
@@ -283,7 +283,7 @@ test('a whole app: each mistake becomes one plain-English issue with a fix to pa
     assert.equal(cors.severity, 'medium');
     assert.equal(cors.title, 'Any website could act as your signed-in users');
 
-    // important issues come first, and no key value reaches anything Floorplan writes
+    // important issues come first, and no key value reaches anything Showplan writes
     assert.equal(issues[0].severity, 'high');
     for (const f of fs.readdirSync(path.join(root, 'floorplan'), { recursive: true })) {
       const p = path.join(root, 'floorplan', f);

@@ -20,6 +20,8 @@ test('Codex is recognised by the variables it sets for every command', () => {
 test('Cursor is recognised by the variables its agent sets, and wins over Codex if both are present', () => {
   assert.equal(detectAgent({}, { CURSOR_AGENT: '1' }), 'cursor');
   assert.equal(detectAgent({}, { CURSOR_CONVERSATION_ID: 'abc' }), 'cursor');
+  assert.equal(detectAgent({}, { CURSOR_REQUEST_ID: 'req' }), 'cursor');
+  assert.equal(detectAgent({}, { CURSOR_CLI: '1' }), 'claude'); // terminal hint alone is not enough
   assert.equal(detectAgent({}, { CURSOR_AGENT: '0' }), 'claude');
   assert.equal(detectAgent({}, { CURSOR_AGENT: '1', CODEX_THREAD_ID: 'abc' }), 'cursor');
 });
@@ -131,7 +133,7 @@ test('a map built in Cursor waits for the Cursor chat, unless --engine names Cla
     const timer = setTimeout(() => reject(new Error(`server didn't start: ${buf.out}`)), 20000);
     server.stdout.on('data', (d) => {
       buf.out += d;
-      const m = /Floorplan: (http:\/\/\S+)/.exec(buf.out);
+      const m = /Showplan: (http:\/\/\S+)/.exec(buf.out);
       if (m && !buf.ready) { buf.ready = true; clearTimeout(timer); resolve({ base: m[1], buf }); }
     });
     server.on('exit', (code) => { if (!buf.ready) reject(new Error(`server exited (${code}): ${buf.out}`)); });

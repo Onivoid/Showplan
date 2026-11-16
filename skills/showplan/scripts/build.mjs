@@ -157,6 +157,13 @@ const ignoreGlobs = globsAt(isStrArr(arch.ignore) ? arch.ignore : [], 'ignore');
 const AUDIENCES = ['everyone', 'developers'];
 if (arch.audience !== undefined && !AUDIENCES.includes(arch.audience)) err(`audience "${arch.audience}" must be one of ${AUDIENCES.join(', ')}${didYouMean(String(arch.audience), AUDIENCES)}`);
 const audience = AUDIENCES.includes(arch.audience) ? arch.audience : 'everyone';
+// map content language (labels, descriptions, tour, recent work): short tag like "fr", "en", "es"
+let language = null;
+if (arch.language !== undefined) {
+  if (typeof arch.language !== 'string' || !/^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$/.test(arch.language.trim())) {
+    err(`language "${arch.language}" must be a short language tag like "en", "fr" or "pt-BR"`);
+  } else language = arch.language.trim();
+}
 // the editor "Open in editor" opens: a preset's name or a link template (assets/page-safety.mjs); VS Code if unset
 const editor = editorTemplate(arch.editor);
 if (editor.error) err(`editor ${editor.error}`);
@@ -528,7 +535,7 @@ const result = (extra) => ({
   ok: !errors.length,
   check: !!args.check,
   errors, warnings,
-  agent, audience, blueprint: !!scan.blueprint, unattended,
+  agent, audience, language, blueprint: !!scan.blueprint, unattended,
   files: { total: included.length, unassigned: unassigned.length, unassignedPercent: Number(pct.toFixed(1)), include },
   // files of the kinds "include" leaves out, by kind, and how many of the included kinds "ignore" leaves out
   notMapped: { byCategory: leftOut.byCategory, ignored: leftOut.ignored },
@@ -565,6 +572,7 @@ const graph = {
   meta: {
     generatedAt: new Date().toISOString(), scanAt: scan.generatedAt, rootName: scan.rootName, root: scan.root,
     audience, agent,
+    ...(language ? { language } : {}),
     ...(editor.template ? { editor: editor.template } : {}),
     ...(scan.blueprint ? { blueprint: { source: scan.blueprint.source, stack: scan.blueprint.stack, assumptions: scan.blueprint.assumptions } } : {}),
     repos: scan.repos.map(({ path: p, name, branch, head, remote }) => ({ path: p, name, branch, head, remote })),

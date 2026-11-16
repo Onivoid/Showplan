@@ -229,7 +229,7 @@ function dedupeExt(list) {
 const code = scan.files.filter((f) => f.category === 'code');
 const out = [];
 const line = (s = '') => out.push(s);
-line(`Floorplan scan of ${scan.rootName}  (${((Date.now() - t0) / 1000).toFixed(1)}s) -> ${toPosix(path.relative(root, outFile))}`);
+line(`Showplan scan of ${scan.rootName}  (${((Date.now() - t0) / 1000).toFixed(1)}s) -> ${toPosix(path.relative(root, outFile))}`);
 line();
 line(`REPOS (${repos.length})`);
 for (const r of repos) line(`  ${r.path.padEnd(40)} ${String(r.files).padStart(6)} files  ${r.branch || '-'}@${(r.head || '').slice(0, 8)}${r.worktreeOf ? '  (worktree)' : ''}${r.listed === false ? '  ! git could not list its files' : ''}`);

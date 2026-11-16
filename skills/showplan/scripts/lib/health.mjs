@@ -1603,8 +1603,8 @@ export function buildHealth({ graph, scan, arch, root }) {
         const where = [...new Map(unsure.map(([, t]) => [`${t.dyn.file}:${t.dyn.line}`, t.dyn])).values()];
         issues.push({
           id: 'rls-unsure:' + repo, kind: 'database-rules', severity: 'medium',
-          title: unsure.length === 1 ? `Floorplan can’t tell whether your ${list[0]} table is protected` : `Floorplan can’t tell whether ${unsure.length} of your database tables are protected`,
-          detail: `A migration (${where[0].file.split('/').pop()}, line ${where[0].line}) switches row-level security ${unsure[0][1].dyn.on ? 'on' : 'off'} with SQL it puts together as it runs, so Floorplan can’t see which tables it covers. If ${unsure.length === 1 ? `the ${list[0]} table` : `any of ${list.slice(0, 6).join(', ')}${list.length > 6 ? ` or ${list.length - 6} more` : ''}`} ends up without it, anyone with your app’s public key could read or change every row there. Worth checking once in the Supabase dashboard, where a table without it is marked “RLS disabled”.`,
+          title: unsure.length === 1 ? `Showplan can’t tell whether your ${list[0]} table is protected` : `Showplan can’t tell whether ${unsure.length} of your database tables are protected`,
+          detail: `A migration (${where[0].file.split('/').pop()}, line ${where[0].line}) switches row-level security ${unsure[0][1].dyn.on ? 'on' : 'off'} with SQL it puts together as it runs, so Showplan can’t see which tables it covers. If ${unsure.length === 1 ? `the ${list[0]} table` : `any of ${list.slice(0, 6).join(', ')}${list.length > 6 ? ` or ${list.length - 6} more` : ''}`} ends up without it, anyone with your app’s public key could read or change every row there. Worth checking once in the Supabase dashboard, where a table without it is marked “RLS disabled”.`,
           items, notes,
           locations: where.map((w) => ({ file: w.file, line: w.line })),
           fix: [
@@ -2136,7 +2136,7 @@ export function buildHealth({ graph, scan, arch, root }) {
       title: big.length === 1 ? 'One file is very large' : `${big.length} files are very large`,
       detail: `${big.length === 1 ? 'This file has' : 'These files each have'} over 1,000 lines${huge.length ? ` (the biggest has ${big[0].loc.toLocaleString('en-US')})` : ''}. AI assistants read and edit big files less reliably: they lose track of what's where and can break one part while fixing another. Splitting them into smaller files by job makes future changes safer.`,
       items: big.slice(0, 24).map((f) => 'f:' + f.p),
-      notes: Object.fromEntries(big.slice(0, 24).map((f) => ['f:' + f.p, `${f.loc.toLocaleString('en-US')} lines${f.tooLarge ? ': too big for Floorplan to read, so what it connects to and any secrets in it weren’t checked' : ''}`])),
+      notes: Object.fromEntries(big.slice(0, 24).map((f) => ['f:' + f.p, `${f.loc.toLocaleString('en-US')} lines${f.tooLarge ? ': too big for Showplan to read, so what it connects to and any secrets in it weren’t checked' : ''}`])),
       locations: big.map((f) => ({ file: f.p, line: 1 })),
       fix: [`Refactor plan: these files are very large:`, ...big.slice(0, 15).map((f) => `- ${f.p} (${f.loc.toLocaleString('en-US')} lines)`), ``, `Start with ${big[0].p}. Read it and propose how to split it into smaller files, each with one clear job (for example by feature or by type of work), keeping every public function name and behaviour the same. Show me the plan first. After I approve, move code in small steps, update the imports, and run the tests after each step. Don't change behaviour.`].join('\n'),
     });
@@ -2185,11 +2185,11 @@ function whatWasChecked({ graph, scan, perRepo, live, usesSupabase, supabaseTabl
     else if (/(^|\/)supabase\/functions\/[^/]+\/index\.[jt]s$/.test(f.path)) servers.push({ file: f.path, what: 'it’s a Supabase Edge Function' });
   }
   if (checkedRoutes) add('endpoints', 'Endpoint sign-in', true, found > checkedRoutes
-    ? `checked ${checkedRoutes} of the ${found} endpoints found (the others are set up in a way Floorplan can’t check yet, or belong to scripts and tests)`
+    ? `checked ${checkedRoutes} of the ${found} endpoints found (the others are set up in a way Showplan can’t check yet, or belong to scripts and tests)`
     : `checked ${plural(checkedRoutes, 'endpoint')}`);
-  else if (found) add('endpoints', 'Endpoint sign-in', false, `not checked: ${plural(found, 'endpoint')} found, but set up in a way Floorplan can’t check for a login yet`);
-  else if (servers.length) add('endpoints', 'Endpoint sign-in', false, `not checked: no endpoints found, but ${servers[0].file} looks like it runs a server (${servers[0].what})${servers.length > 1 ? `, and so ${servers.length === 2 ? 'does 1 other file' : `do ${servers.length - 1} other files`}` : ''}. Its endpoints may be set up in a way Floorplan doesn’t recognise yet, so nothing checked whether they need a login.`, true);
-  else add('endpoints', 'Endpoint sign-in', false, 'not checked: no endpoints found. If your app has a server, it may use a setup Floorplan doesn’t recognise yet.');
+  else if (found) add('endpoints', 'Endpoint sign-in', false, `not checked: ${plural(found, 'endpoint')} found, but set up in a way Showplan can’t check for a login yet`);
+  else if (servers.length) add('endpoints', 'Endpoint sign-in', false, `not checked: no endpoints found, but ${servers[0].file} looks like it runs a server (${servers[0].what})${servers.length > 1 ? `, and so ${servers.length === 2 ? 'does 1 other file' : `do ${servers.length - 1} other files`}` : ''}. Its endpoints may be set up in a way Showplan doesn’t recognise yet, so nothing checked whether they need a login.`, true);
+  else add('endpoints', 'Endpoint sign-in', false, 'not checked: no endpoints found. If your app has a server, it may use a setup Showplan doesn’t recognise yet.');
 
   if (usesSupabase && supabaseTables) add('supabase', 'Supabase table rules', true, `checked ${plural(supabaseTables, 'table')} in the migrations`);
   else if (usesSupabase) add('supabase', 'Supabase table rules', false, 'not checked: the app uses Supabase, but no migrations that create tables were found. Tables made in the Supabase dashboard can’t be checked from the code.', true);

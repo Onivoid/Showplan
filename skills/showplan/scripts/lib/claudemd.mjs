@@ -16,16 +16,16 @@ const NAME = 'CLAUDE.local.md';
 
 function block(rel) {
   return `${START}
-## Floorplan: map of this codebase
+## Showplan: map of this codebase
 
-\`${rel}/\` holds a map of this codebase: every module, file and endpoint with a plain-English name and a one-line description, and what connects to what. For questions like "where is X", "how does Y work" or "what uses Z", look it up before searching the code (run these from the folder this file is in):
+\`${rel}/\` holds a map of this codebase: every module, file and endpoint with a human-readable name and a one-line description, and what connects to what. For questions like "where is X", "how does Y work" or "what uses Z", look it up before searching the code (run these from the folder this file is in):
 
 - \`node ${rel}/query.mjs find "<words>"\`: modules, files and endpoints that match
 - \`node ${rel}/query.mjs show <file path | module id | "GET /path">\`: what it is, what it uses, what uses it
 - \`node ${rel}/query.mjs path <from> <to>\`: how two things connect
 - \`node ${rel}/query.mjs overview\`: the whole system at a glance
 
-The map can lag behind recent edits, so confirm in the code before changing anything. Open it with \`node ${rel}/serve.mjs\`. After big changes, update it with the floorplan skill (the user can just ask to "update the floorplan"; only changed files are re-read).
+The map can lag behind recent edits, so confirm in the code before changing anything. Open it with \`node ${rel}/serve.mjs\`. After big changes, update it with the Showplan skill (the user can just ask to "update the showplan"; only changed files are re-read).
 ${END}`;
 }
 
@@ -43,7 +43,7 @@ const stripBlock = (text) => {
  */
 export function ignoreUncommitted(root, name, comment) {
   if (git(root, ['rev-parse', '--is-inside-work-tree']) !== 'true') return 'not in a git repo';
-  if (git(root, ['ls-files', '--', name])) return `${name} is committed in this repo; the Floorplan section will show up in it`;
+  if (git(root, ['ls-files', '--', name])) return `${name} is committed in this repo; the Showplan section will show up in it`;
   if (git(root, ['check-ignore', '-q', '--', name]) !== null) return 'already ignored';
   const prefix = git(root, ['rev-parse', '--show-prefix']) || '';
   const excl = git(root, ['rev-parse', '--git-path', 'info/exclude']);
@@ -60,7 +60,7 @@ export function ignoreUncommitted(root, name, comment) {
 
 /** Adds CLAUDE.local.md to the enclosing repo's .git/info/exclude unless git already ignores it. */
 function excludeLocally(root) {
-  return ignoreUncommitted(root, NAME, 'personal Claude Code notes (added by Floorplan)');
+  return ignoreUncommitted(root, NAME, 'personal Claude Code notes (added by Showplan)');
 }
 
 /** Refreshes the block, or adds it when `add` (the user asked for it); moves it out of a committed CLAUDE.md written by older versions. */
@@ -80,7 +80,7 @@ export function writeClaudeMd(root, outDir, { add = false } = {}) {
     const tracked = !!git(path.dirname(f), ['ls-files', '--', path.basename(f)]);
     if (!rest.trim() && !tracked) fs.unlinkSync(f);
     else fs.writeFileSync(f, rest.replace(/\n/g, eol) + (rest.trim() ? eol : ''));
-    notes.push(`moved the Floorplan section out of ${path.relative(root, f).replace(/\\/g, '/')}${!rest.trim() && tracked ? ' (now empty; delete it if you like)' : ''}`);
+    notes.push(`moved the Showplan section out of ${path.relative(root, f).replace(/\\/g, '/')}${!rest.trim() && tracked ? ' (now empty; delete it if you like)' : ''}`);
   }
 
   const file = path.join(root, NAME);

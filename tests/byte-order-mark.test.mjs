@@ -1,5 +1,5 @@
 // JSON files written on Windows: PowerShell's Set-Content and Out-File (5.1), and some editors, start a UTF-8 file
-// with a byte order mark, which JSON.parse rejects. Every file a person or an agent writes for Floorplan
+// with a byte order mark, which JSON.parse rejects. Every file a person or an agent writes for Showplan
 // (architecture.json, descriptions, recent-work.json, plan.json, flows and Health dismissals) reads the same with one.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

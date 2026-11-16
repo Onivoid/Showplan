@@ -190,7 +190,7 @@ const B = built.result; // null only if the build crashed before it could report
 // ---------- 6. report ----------
 const since = new Date(old.meta.generatedAt);
 const L = [];
-L.push(`Floorplan refresh — last map ${since.toLocaleString()}`);
+L.push(`Showplan refresh — last map ${since.toLocaleString()}`);
 L.push(`  files   +${created.length} new · −${deleted.length} deleted · ${renames.size} moved/renamed (descriptions carried over) · ${edited.length} edited, ${digestChanged.length} with changed exports/routes`);
 L.push(`  routes  +${newRoutes.size} new · −${goneRoutes.length - routeMoves.size} removed · ${routeMoves.size} re-pathed (descriptions carried over)`);
 L.push(`  descriptions: ${carried + routeCarried} carried over, ${pruned + routePruned} removed, ${flagged} flagged for review`);

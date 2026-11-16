@@ -120,12 +120,12 @@ test('the summary leaves dismissed issues out but the issues stay listed', () =>
 });
 
 test('the page applies the same rule as the build', () => {
-  const ui = fs.readFileSync(new URL('../skills/floorplan/assets/ui/20-health.js', import.meta.url), 'utf8');
+  const ui = fs.readFileSync(new URL('../skills/showplan/assets/ui/20-health.js', import.meta.url), 'utf8');
   for (const piece of [`d.severity && d.severity !== issue.severity`, `String(loc).replace(/:[^:]*$/, '')`, `left.get(l.file) || 0`]) assert.ok(ui.includes(piece), piece);
 });
 
 test('a report opens a GitHub issue for the person to send, and carries no code, fix prompt or detail', () => {
-  const ui = fs.readFileSync(new URL('../skills/floorplan/assets/ui/20-health.js', import.meta.url), 'utf8');
+  const ui = fs.readFileSync(new URL('../skills/showplan/assets/ui/20-health.js', import.meta.url), 'utf8');
   const report = /const reportText = [\s\S]*?\.join\('\\n'\);/.exec(ui)[0];
   assert.ok(!/issue\.(fix|detail|notes)/.test(report), report);
   assert.ok(/issues\/new/.test(ui));
@@ -151,7 +151,7 @@ before(async () => {
   base = await new Promise((resolve, reject) => {
     let out = '';
     const timer = setTimeout(() => reject(new Error(`server didn't start: ${out}`)), 20000);
-    server.stdout.on('data', (d) => { out += d; const m = /Floorplan: (http:\/\/\S+)/.exec(out); if (m) { clearTimeout(timer); resolve(m[1].replace(/\/$/, '')); } });
+    server.stdout.on('data', (d) => { out += d; const m = /Showplan: (http:\/\/\S+)/.exec(out); if (m) { clearTimeout(timer); resolve(m[1].replace(/\/$/, '')); } });
     server.on('exit', (code) => reject(new Error(`server exited (${code}): ${out}`)));
   });
   token = /"token":"([0-9a-f]+)"/.exec(await (await fetch(base + '/')).text())[1];

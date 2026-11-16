@@ -63,7 +63,7 @@ A count of important issues, and a plain-language list of problems the scan foun
 - files nothing uses;
 - files over about 1,000 lines, which AI struggles to edit safely.
 
-Below the count, **What was checked** says what each check had to look at: how many endpoints, Supabase tables, Firebase rules files, Stripe webhooks and files it read, or that it found none. A check with nothing to look at can't find a problem, so a short list isn't always a clean bill of health. The line stands out when it matters, for example when the code looks like it runs a server (a `createServer` call, `Deno.serve`, a Supabase Edge Function, PHP that reads `$_POST` or declares `#[Route]`s) but no endpoints were found, which usually means they're set up in a way Floorplan doesn't recognise yet.
+Below the count, **What was checked** says what each check had to look at: how many endpoints, Supabase tables, Firebase rules files, Stripe webhooks and files it read, or that it found none. A check with nothing to look at can't find a problem, so a short list isn't always a clean bill of health. The line stands out when it matters, for example when the code looks like it runs a server (a `createServer` call, `Deno.serve`, a Supabase Edge Function, PHP that reads `$_POST` or declares `#[Route]`s) but no endpoints were found, which usually means they're set up in a way Showplan doesn't recognise yet.
 
 Each issue has **Show on map**, which highlights the affected files and endpoints with notes, and **Fix with Claude** (or **Fix with Codex**, for a map made in Codex), which copies a ready-made prompt naming the exact files and lines and the safe fix. It's a quick automatic check, not a security audit. On a blueprint this button is **Review** instead (see [Blueprints](#blueprints)).
 
@@ -79,16 +79,16 @@ In ASP.NET Core, `[Authorize]` and `.RequireAuthorization()` count wherever they
 
 If an issue is wrong, press **Not a problem** and add a reason if you like. It moves to the bottom of the list and out of the count, and stays that way when the map is rebuilt. Editing elsewhere in the file won't bring it back, but it does show again if the same check finds something new in that file or the issue changes severity. **Show again** undoes it. Exported copies keep the issue set apart but leave your reason out.
 
-You can also tick the box to tell the Floorplan developer. That opens a GitHub issue for you to read, edit and send yourself, with the check's name and title, the kinds of files involved and your note. A title can name a file or an endpoint, and the preview shows you exactly what will go. It never includes your code or any values, and nothing is sent unless you send it.
+You can also tick the box to tell the Showplan developer. That opens a GitHub issue for you to read, edit and send yourself, with the check's name and title, the kinds of files involved and your note. A title can name a file or an endpoint, and the preview shows you exactly what will go. It never includes your code or any values, and nothing is sent unless you send it.
 
 ### Recent work
 Appears when Claude or Codex has just changed things. It lays the changed cards out on one board, with what you asked for, a summary of what was done, and a note on every card. Elsewhere on the map, changed cards have a green ring and a **Changed** or **New** tag, and the parts that contain them show **N changed**, so you can follow the green down from the top level.
 
 ### Screens
-Every page of your app that Floorplan detected. Pick one to see everything behind it: its components, the requests it makes, the server code that answers them, the data they touch, and outside services.
+Every page of your app that Showplan detected. Pick one to see everything behind it: its components, the requests it makes, the server code that answers them, the data they touch, and outside services.
 
 ### Export
-Saves a copy of the map to send to anyone, such as a teammate, a client, or someone without Claude or Codex. It's one HTML file that opens in any browser with nothing to install. The copy has the whole map, search, screens, the tour and flows, but no Ask bar, no **Fix with Claude** or **Build this** requests, no editor links, and nothing about your computer, like its folder path. An **Exported** label beside the title shows the date, and a small **Made with Floorplan** link at the bottom leads here.
+Saves a copy of the map to send to anyone, such as a teammate, a client, or someone without Claude or Codex. It's one HTML file that opens in any browser with nothing to install. The copy has the whole map, search, screens, the tour and flows, but no Ask bar, no **Fix with Claude** or **Build this** requests, no editor links, and nothing about your computer, like its folder path. An **Exported** label beside the title shows the date, and a small **Made with Showplan** link at the bottom leads here.
 
 You choose what goes in:
 - **Flows and the tour**, and **notes pinned to files**, on by default;

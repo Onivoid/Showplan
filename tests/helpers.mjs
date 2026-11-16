@@ -7,8 +7,8 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 export const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-export const SKILL = path.join(REPO, 'skills', 'floorplan');
-export const lib = (name) => import(new URL(`../skills/floorplan/scripts/lib/${name}`, import.meta.url));
+export const SKILL = path.join(REPO, 'skills', 'showplan');
+export const lib = (name) => import(new URL(`../skills/showplan/scripts/lib/${name}`, import.meta.url));
 
 /**
  * Writes `files` ({ 'relative/path': 'contents' }) into a new temp folder. Each folder in `repos`
@@ -60,7 +60,7 @@ export function openEndpoints(graph) {
 }
 
 // A fake password for the sample app. It's assembled at runtime so no secret-looking string is
-// ever committed to this repo, and the tests can check it never reaches anything Floorplan writes.
+// ever committed to this repo, and the tests can check it never reaches anything Showplan writes.
 export const FAKE_PASSWORD = ['correct', 'horse', 'battery', 'staple', '42'].join('-');
 
 /**

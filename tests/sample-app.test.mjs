@@ -35,7 +35,7 @@ test('Health flags only the endpoint with no login check, and the hard-coded pas
   assert.deepEqual(secret.locations, [{ file: 'shop-api/config.js', line: 1 }]);
 });
 
-test('the secret value is never written anywhere Floorplan writes, or printed', () => {
+test('the secret value is never written anywhere Showplan writes, or printed', () => {
   assert.ok(!output.includes(FAKE_PASSWORD), 'scan/build output');
   for (const f of allFiles(path.join(root, 'floorplan'))) assert.ok(!f.text.includes(FAKE_PASSWORD), path.relative(root, f.path));
 });
@@ -49,7 +49,7 @@ test('the map makes no outside requests: scripts, styles and fonts are all insid
   assert.match(html, /@font-face\{font-family:"Inter"/);
 });
 
-test('nothing Floorplan makes is committed: floorplan/ ignores itself', () => {
+test('nothing Showplan makes is committed: floorplan/ ignores itself', () => {
   assert.equal(fs.readFileSync(path.join(root, 'floorplan', '.gitignore'), 'utf8').trim().split('\n').pop(), '*');
 });
 

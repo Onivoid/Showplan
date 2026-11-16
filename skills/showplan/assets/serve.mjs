@@ -245,8 +245,8 @@ if (idleExit) setInterval(() => { if (!tabs.size && !running.size && !cursorBusy
 const flowsFile = path.join(here, 'custom-flows.json');
 const readFlows = () => { try { return readJson(flowsFile).flows || []; } catch { return []; } };
 
-// ---------- Floorplan Cloud waitlist (opt-in) ----------
-// The map may ask, once, whether you want an email when Floorplan Cloud launches. Nothing is sent unless
+// ---------- Showplan Cloud waitlist (opt-in) ----------
+// The map may ask, once, whether you want an email when Showplan Cloud launches. Nothing is sent unless
 // you click "Notify me", and then only the email you see in the box and whether it's for you or a team.
 // Where it goes: a small Cloud Run service that adds it to a Google Sheet (docs/privacy-and-security.md
 // links its code). Your answer (joined, later,
@@ -589,7 +589,7 @@ function restore(dir) {
 function skillScript(name, ...args) {
   let dir;
   try { dir = readJson(path.join(here, '.cache', 'skill.json')).dir; } catch {}
-  if (!dir || !fs.existsSync(path.join(dir, 'scripts', name))) throw new Error('This map’s server can’t find the Floorplan scripts. Ask Claude Code or Codex to update the floorplan once, then try again.');
+  if (!dir || !fs.existsSync(path.join(dir, 'scripts', name))) throw new Error('This map’s server can’t find the Showplan scripts. Ask Claude Code or Codex to update the floorplan once, then try again.');
   try { return execFileSync(process.execPath, [path.join(dir, 'scripts', name), root, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true, timeout: 120000 }); }
   catch (e) { throw Object.assign(new Error(String(e.stdout || '') + String(e.stderr || '') || e.message), { checks: true }); }
 }
@@ -828,7 +828,7 @@ server.on('listening', () => {
   const forget = () => { try { if (readState()?.pid === process.pid) fs.unlinkSync(stateFile); } catch {} };
   process.on('exit', forget);
   for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(sig, () => process.exit(0));
-  console.log(`Floorplan: ${u}`);
+  console.log(`Showplan: ${u}`);
   console.log(cursorAsk
     ? 'asking through the Cursor chat. Questions wait here until that chat replies (ask-poll.mjs).'
     : cli

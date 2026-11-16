@@ -11,7 +11,7 @@ import crypto from 'node:crypto';
 import { spawn, execFileSync } from 'node:child_process';
 import { makeProject, run, readJson, writeJson, readGraph, cleanup, SKILL, lib } from './helpers.mjs';
 
-const pageSafety = () => import(new URL('../skills/floorplan/assets/page-safety.mjs', import.meta.url));
+const pageSafety = () => import(new URL('../skills/showplan/assets/page-safety.mjs', import.meta.url));
 const LS = String.fromCharCode(0x2028), PS = String.fromCharCode(0x2029), RLO = String.fromCharCode(0x202e), ZWSP = String.fromCharCode(0x200b);
 // What a browser's HTML parser reacts to inside a <script>, plus quotes, template syntax and line separators
 const H = `<!--<script> </script><ScRiPt >--> &amp; <img src=x onerror=1> ${LS}${PS} \`\${x}\` '"`;
@@ -52,7 +52,7 @@ async function startServer(root) {
   const base = await new Promise((resolve, reject) => {
     let out = '';
     const timer = setTimeout(() => reject(new Error(`server didn't start: ${out}`)), 20000);
-    server.stdout.on('data', (d) => { out += d; const m = /Floorplan: (http:\/\/\S+)/.exec(out); if (m) { clearTimeout(timer); resolve(m[1]); } });
+    server.stdout.on('data', (d) => { out += d; const m = /Showplan: (http:\/\/\S+)/.exec(out); if (m) { clearTimeout(timer); resolve(m[1]); } });
     server.on('exit', (code) => reject(new Error(`server exited (${code}): ${out}`)));
   });
   return { base, stop: () => new Promise((resolve) => { if (server.exitCode !== null) return resolve(); server.once('exit', resolve); server.kill(); }) };
@@ -461,7 +461,7 @@ test('a tsconfig whose "extends" leads back to itself doesn\'t crash the scan', 
   });
   try {
     const out = run('scan.mjs', root);
-    assert.match(out, /Floorplan scan of/);
+    assert.match(out, /Showplan scan of/);
     const scan = readJson(path.join(root, 'floorplan', '.cache', 'scan.json'));
     assert.ok(scan.edges.some((e) => e.from === 'src/a.ts' && e.to === 'src/b.ts'), 'ordinary imports are still linked');
   } finally { cleanup(root); }

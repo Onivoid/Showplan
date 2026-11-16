@@ -1,7 +1,7 @@
 // How text gets into a map page safely. Used by build.mjs, and by the map's server (serve.mjs, which finds a
 // copy of this file next to it in floorplan/). Plain Node: no dependencies, nothing from the network.
 //
-// A map shows text Floorplan didn't write: file names, route paths and comments from the code, and
+// A map shows text Showplan didn't write: file names, route paths and comments from the code, and
 // descriptions written by an agent or a person. A page must never treat any of it as markup, so:
 // - scriptJson() is the one way data goes into a <script> block. Every <, >, & and line or paragraph
 //   separator is written as a \u escape: the same JSON value, but nothing the HTML parser reacts to
@@ -117,7 +117,7 @@ export function withPolicy(html, kind) {
 // ---------- editor links ----------
 // "Open in editor" is a link the browser hands to an editor, built from a template with {path} (the file's full
 // path), {line} and {column}. It can be set in architecture.json ("editor") or on the map's server (--editor), so
-// it's text Floorplan didn't write: only editors' own link schemes are allowed (never javascript:, data:, a web
+// it's text Showplan didn't write: only editors' own link schemes are allowed (never javascript:, data:, a web
 // address or file:), and nothing that could end the attribute it goes in. The viewer checks the same list again.
 /** The editors with a name of their own. A template is any link in one of EDITOR_SCHEMES with {path} in it. */
 export const EDITOR_PRESETS = {

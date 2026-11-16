@@ -1,5 +1,5 @@
 // "Open in editor" opens the editor people use: VS Code by default, or one set by name or as a link template in
-// architecture.json ("editor") or on the map's server (--editor, FLOORPLAN_EDITOR). The setting is text Floorplan
+// architecture.json ("editor") or on the map's server (--editor, FLOORPLAN_EDITOR). The setting is text Showplan
 // didn't write, so only editors' own link schemes are taken, never a script, data, web or file: link, and the page
 // checks it again before building a link. The page's own code is run here (not a real browser).
 import { test, after } from 'node:test';
@@ -10,7 +10,7 @@ import vm from 'node:vm';
 import { spawn, execFileSync } from 'node:child_process';
 import { SKILL, shopApp, run, readGraph, readJson, writeJson, cleanup } from './helpers.mjs';
 
-const { editorTemplate, EDITOR_PRESETS, EDITOR_SCHEMES } = await import(new URL('../skills/floorplan/assets/page-safety.mjs', import.meta.url));
+const { editorTemplate, EDITOR_PRESETS, EDITOR_SCHEMES } = await import(new URL('../skills/showplan/assets/page-safety.mjs', import.meta.url));
 
 const roots = [];
 const servers = [];
@@ -158,7 +158,7 @@ function serve(root, args = [], env = {}) {
     const timer = setTimeout(() => reject(new Error(`server didn't start: ${out}`)), 20000);
     s.stdout.on('data', async (d) => {
       out += d;
-      const m = /Floorplan: (http:\/\/\S+)/.exec(out);
+      const m = /Showplan: (http:\/\/\S+)/.exec(out);
       if (!m) return;
       clearTimeout(timer);
       const html = await (await fetch(m[1] + '/')).text();

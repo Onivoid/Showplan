@@ -1,9 +1,9 @@
-// Unattended mode and the workflow file: running Floorplan without an agent session (in CI, in scripts, or
-// from your own tooling). A tiny driver below follows skills/floorplan/workflow.json with canned model
+// Unattended mode and the workflow file: running Showplan without an agent session (in CI, in scripts, or
+// from your own tooling). A tiny driver below follows skills/showplan/workflow.json with canned model
 // answers, using only the scripts' --json output and exit codes, the way a real driver would. The other tests
 // check what such a driver relies on: nothing written outside floorplan/, a map that names no agent, loud
-// failures when git can't list files, and that people using Floorplan in Claude Code or Codex see no change.
-// If one of these fails, a program that runs Floorplan this way would break too: see docs/unattended.md.
+// failures when git can't list files, and that people using Showplan in Claude Code or Codex see no change.
+// If one of these fails, a program that runs Showplan this way would break too: see docs/unattended.md.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -268,7 +268,7 @@ test('a whole first map, following workflow.json with canned model answers', () 
   const arch = calls.filter((c) => c.job === 'architecture');
   assert.equal(arch.length, 2, 'the build check sent the model back once');
   assert.match(arch[1].inputs['What the last build said about it'], /unassigned, by directory[\s\S]*shop-web/);
-  assert.match(arch[0].inputs['Scan summary'], /^Floorplan scan of /);
+  assert.match(arch[0].inputs['Scan summary'], /^Showplan scan of /);
   assert.deepEqual(log.filter((l) => l.startsWith('job descriptions')).sort(), ['job descriptions (api)', 'job descriptions (web)']);
   const b = results.build;
   assert.equal(b.ok, true);
@@ -434,9 +434,9 @@ function snapshot(dir) {
   walk(dir);
   return out;
 }
-const OLD_BLOCK = 'Team notes.\n\n<!-- floorplan:start -->\nan old Floorplan section\n<!-- floorplan:end -->\n';
+const OLD_BLOCK = 'Team notes.\n\n<!-- floorplan:start -->\nan old Showplan section\n<!-- floorplan:end -->\n';
 
-test('unattended mode writes nothing outside floorplan/, even with an old Floorplan section in CLAUDE.md', () => {
+test('unattended mode writes nothing outside floorplan/, even with an old Showplan section in CLAUDE.md', () => {
   const p = shopApp();
   try {
     fs.writeFileSync(path.join(p, 'CLAUDE.md'), OLD_BLOCK);
@@ -466,7 +466,7 @@ test('without unattended mode the same project behaves as before: the old sectio
     fs.writeFileSync(path.join(p, 'CLAUDE.md'), OLD_BLOCK);
     run('scan.mjs', p);
     const out = run('build.mjs', p, '--agent', 'claude');
-    assert.match(out, /CLAUDE\.LOCAL\.MD {2}created CLAUDE\.local\.md; moved the Floorplan section out of CLAUDE\.md/);
+    assert.match(out, /CLAUDE\.LOCAL\.MD {2}created CLAUDE\.local\.md; moved the Showplan section out of CLAUDE\.md/);
     assert.equal(fs.readFileSync(path.join(p, 'CLAUDE.md'), 'utf8'), 'Team notes.\n');
     assert.match(fs.readFileSync(path.join(p, 'CLAUDE.local.md'), 'utf8'), /floorplan\/query\.mjs/);
     assert.equal(readGraph(p).meta.agent, 'claude');
@@ -768,7 +768,7 @@ test('workflow.json handles every NEXT code refresh.mjs can print, and every sta
 test("workflow.json's answers keep their shape: the files a model writes are the ones existing drivers expect", () => {
   const S = WORKFLOW.schemas;
   assert.deepEqual(Object.keys(S).sort(), ['architecture', 'descriptions', 'recent_work']);
-  assert.deepEqual(Object.keys(S.architecture.properties).sort(), ['$schema', 'annotations', 'audience', 'edges', 'flows', 'ignore', 'include', 'nodes', 'project', 'tour']);
+  assert.deepEqual(Object.keys(S.architecture.properties).sort(), ['$schema', 'annotations', 'audience', 'edges', 'editor', 'flows', 'ignore', 'include', 'language', 'nodes', 'project', 'tour']);
   assert.deepEqual(Object.keys(S.architecture.properties.nodes.items.properties).sort(), ['details', 'exclude', 'hosts', 'id', 'kind', 'label', 'packages', 'parent', 'paths', 'summary', 'tags']);
   for (const k of ['files', 'routes']) assert.deepEqual(S.descriptions.properties[k].additionalProperties, { type: 'object', required: ['name', 'description'], additionalProperties: false, properties: { name: { type: 'string', minLength: 1 }, description: { type: 'string', minLength: 1 }, review: { type: 'string' } } });
   assert.deepEqual(S.recent_work.properties.tasks.items.required, ['title', 'request', 'summary', 'items']);

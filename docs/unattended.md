@@ -1,10 +1,10 @@
-# Running Floorplan without an agent session
+# Running Showplan without an agent session
 
-Floorplan is made to run inside Claude Code or Codex, with you there. It can also run on its own: in CI, in a script, or from your own tooling, with any model that can read files and return JSON. This guide covers the three things that make that work:
+Showplan is made to run inside Claude Code or Codex, with you there. It can also run on its own: in CI, in a script, or from your own tooling, with any model that can read files and return JSON. This guide covers the three things that make that work:
 
-- **Unattended mode**, which keeps Floorplan to its own folder and makes failures fail;
+- **Unattended mode**, which keeps Showplan to its own folder and makes failures fail;
 - **`--json`**, which gives each script's result as data instead of a report;
-- **the workflow file**, `skills/floorplan/workflow.json`, which describes every step as data so a small program can follow it.
+- **the workflow file**, `skills/showplan/workflow.json`, which describes every step as data so a small program can follow it.
 
 The scripts never call a model, here or anywhere else. They do everything mechanical. A model only ever writes three kinds of JSON file: `floorplan/architecture.json`, `floorplan/descriptions/<key>.json` and `floorplan/recent-work.json`. In an agent session the agent does that; without one, your program asks a model and writes its answer.
 
@@ -18,12 +18,12 @@ export FLOORPLAN_UNATTENDED=1
 
 (in Windows PowerShell: `$env:FLOORPLAN_UNATTENDED = "1"`), or pass `--unattended` to a script, which sets the same thing for it and for the scripts it runs (`refresh.mjs` runs `scan.mjs` and `build.mjs`). In unattended mode:
 
-- **Nothing is written outside `floorplan/`.** No `CLAUDE.local.md`, no line in `.git/info/exclude`, no moving an old Floorplan section out of `CLAUDE.md`, and an old `show-code/` map is left where it is. Git is run with `--no-optional-locks`, so even `git status` leaves the repo's own files alone.
+- **Nothing is written outside `floorplan/`.** No `CLAUDE.local.md`, no line in `.git/info/exclude`, no moving an old Showplan section out of `CLAUDE.md`, and an old `show-code/` map is left where it is. Git is run with `--no-optional-locks`, so even `git status` leaves the repo's own files alone.
 - **The map names no agent.** It records `"agent": "none"`, so its Health and blueprint buttons say "Fix with AI" and "paste it into your AI coding agent" instead of naming Claude or Codex. You can also set `FLOORPLAN_AGENT=none` on its own. Naming an agent (`--agent claude`, `FLOORPLAN_AGENT=codex`) still wins. If the map's server is running, it names the CLI it found, as it always has.
 - **`open.mjs` starts nothing.** Nobody is there to look, so it starts no server and opens no browser.
 - **Failures fail.** See [Exit codes](#exit-codes).
 
-Everything else is the same: the scan, the map, Health, the descriptions. Without unattended mode, nothing about how Floorplan behaves changes.
+Everything else is the same: the scan, the map, Health, the descriptions. Without unattended mode, nothing about how Showplan behaves changes.
 
 ### When git can't list a repo's files
 
@@ -76,7 +76,7 @@ Most also carry the human report as text (`report`, `summary` or `text`), which 
 | `screens` | how many screens were found |
 | `recentWork` | `cards` and `tasks` highlighted, and whether `recent-work.json` exists |
 | `agent`, `audience`, `blueprint`, `unattended`, `check` | how it was built |
-| `notes` | `claudeLocalMd`: what happened to `CLAUDE.local.md`, if anything (never anything in unattended mode); `cursorRule`: the same for `.cursor/rules/floorplan.mdc` (null unless the map was built in Cursor, and still null in unattended mode); `git`: a warning when git already tracks files in `floorplan/` |
+| `notes` | `claudeLocalMd`: what happened to `CLAUDE.local.md`, if anything (never anything in unattended mode); `cursorRule`: the same for `.cursor/rules/showplan.mdc` (null unless the map was built in Cursor, and still null in unattended mode); `git`: a warning when git already tracks files in `floorplan/` |
 | `wrote[]` | the files written in the map folder; empty when there were errors or with `--check` |
 | `report` | the build's report |
 
@@ -140,7 +140,7 @@ The NEXT codes are stable, so a program can act on them:
 
 ## The workflow file
 
-`skills/floorplan/workflow.json` (`"schema": "floorplan/workflow@1"`) is SKILL.md's process as data: everything a program needs to make a map, or bring one up to date, with any model. It has:
+`skills/showplan/workflow.json` (`"schema": "floorplan/workflow@1"`) is SKILL.md's process as data: everything a program needs to make a map, or bring one up to date, with any model. It has:
 
 - **`conventions`**: how to run a script, what exit codes mean, how results are saved and read, how answers are checked and written, and the four tools a model gets: `read_file`, `list_files`, `grep` (all read-only, inside the codebase) and `submit` (its answer).
 - **`format`**: what each kind of step means. A step runs a script, runs a model job (once, or once per item, possibly in parallel), writes a fixed file, repeats some steps until a check passes (at least `minAttempts` times when given), or follows refresh's NEXT list. A job or repeat step marked `optional: true` may fail without failing the run: the driver puts the files in its `restore` list back as they were, runs its `onFail` steps, records `{ step, reason }` in the run's notes and carries on. A job with `onlyChange: { file, fields }` may change only those fields of that file (`nodes[].label` means every node's label); any other difference is sent back to the model like a schema problem.
@@ -149,7 +149,7 @@ The NEXT codes are stable, so a program can act on them:
 - **`jobs`**: one per kind of model work: `architecture`, `plain_language`, `update_architecture`, `descriptions` and `recent_work`. Each lists the reference files to give the model, its instructions (written for a model with only those tools and nobody to ask), its inputs, the file its answer becomes, and the name of its answer's schema.
 - **`schemas`**: a JSON Schema for each kind of answer.
 
-The jobs point at the reference files in `skills/floorplan/references/` rather than repeating them, so the format and the style guide have one source, shared with SKILL.md.
+The jobs point at the reference files in `skills/showplan/references/` rather than repeating them, so the format and the style guide have one source, shared with SKILL.md.
 
 ### How a first map goes
 
@@ -160,7 +160,7 @@ The jobs point at the reference files in `skills/floorplan/references/` rather t
 
 ### How a refresh goes
 
-`refresh.mjs --json`, then, for each item in `next`, the procedure for its code: `fix_build` and `assign_new_files` run the `update_architecture` job until the build passes its check, `describe` and `recent_work` run as in a first map, and so on. A code the file doesn't know fails the run, so a newer Floorplan can't be silently half-followed.
+`refresh.mjs --json`, then, for each item in `next`, the procedure for its code: `fix_build` and `assign_new_files` run the `update_architecture` job until the build passes its check, `describe` and `recent_work` run as in a first map, and so on. A code the file doesn't know fails the run, so a newer Showplan can't be silently half-followed.
 
 ### A worked example
 
@@ -168,7 +168,7 @@ With a two-repo shop in `/work/shop`:
 
 ```bash
 export FLOORPLAN_UNATTENDED=1
-S=/path/to/floorplan/skills/floorplan
+S=/path/to/floorplan/skills/showplan
 
 node $S/scripts/status.mjs /work/shop --json      # "state": "none", so first_map
 node $S/scripts/scan.mjs /work/shop --json        # hand "summary" to the architecture job
@@ -220,7 +220,7 @@ Two `descriptions` jobs, one per worksheet, each writing its `descriptions` file
 - Honouring `optional` steps: a failed one puts its `restore` files back, runs `onFail`, and is noted, never fatal.
 - Keeping secrets out of what it writes. The model reads the code, secrets included, so a fooled or careless one can copy a key into a description. The build masks such text before it reaches the map (see `secretsHidden` above), but the answer files keep what was written. To keep them clean too, run each answer's text through the same check before writing it:
   ```js
-  import { maskSecrets } from '/path/to/floorplan/skills/floorplan/scripts/lib/health.mjs';
+  import { maskSecrets } from '/path/to/floorplan/skills/showplan/scripts/lib/health.mjs';
   const safe = maskSecrets(text);        // text written by a person or a model
   if (safe !== text) { /* it held something secret-looking: write `safe`, or send it back as a problem */ }
   ```

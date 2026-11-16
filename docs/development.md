@@ -1,4 +1,4 @@
-# Developing Floorplan
+# Developing Showplan
 
 ## Repo layout
 
@@ -14,7 +14,7 @@
   plugin.json          the same skill, listed for Cursor
 .agents/plugins/
   marketplace.json     this repo as a Codex marketplace
-skills/floorplan/
+skills/showplan/
   SKILL.md             the workflow Claude, Codex and Cursor follow
   agents/openai.yaml   how Codex lists the skill
   workflow.json        the same steps as SKILL.md, as data, for running without an agent session
@@ -54,23 +54,23 @@ docs/                  these guides
 Install from your local folder instead of GitHub:
 
 ```bash
-claude plugin marketplace add /path/to/floorplan
-claude plugin install floorplan@floorplan
+claude plugin marketplace add /path/to/showplan
+claude plugin install showplan@showplan
 ```
 
 A plugin installed from a local folder runs straight from it, so edits apply in the next session with no update step.
 
-To try it in Codex, see [Trying a working copy](codex.md#trying-a-working-copy). Codex copies a local plugin when you add it, so run `codex plugin add floorplan@floorplan` again after each change. To try it in Cursor, copy `skills/floorplan` to `.cursor/skills/floorplan/` and start a new chat ([Floorplan in Cursor](cursor.md)). `--agent claude|codex|cursor|none` on build.mjs (or `FLOORPLAN_AGENT`) and `--engine claude|codex` on serve.mjs let you try a map from anywhere.
+To try it in Codex, see [Trying a working copy](codex.md#trying-a-working-copy). Codex copies a local plugin when you add it, so run `codex plugin add showplan@showplan` again after each change. To try it in Cursor, copy `skills/showplan` to `.cursor/skills/showplan/` and start a new chat ([Showplan in Cursor](cursor.md)). `--agent claude|codex|cursor|none` on build.mjs (or `FLOORPLAN_AGENT`) and `--engine claude|codex` on serve.mjs let you try a map from anywhere.
 
 The scripts also run on their own, which is the fastest way to work on them:
 
 ```bash
-node skills/floorplan/scripts/scan.mjs /path/to/project
-node skills/floorplan/scripts/build.mjs /path/to/project
-node skills/floorplan/scripts/open.mjs /path/to/project
+node skills/showplan/scripts/scan.mjs /path/to/project
+node skills/showplan/scripts/build.mjs /path/to/project
+node skills/showplan/scripts/open.mjs /path/to/project
 ```
 
-`build.mjs` needs a `floorplan/architecture.json` in the project, so run the skill once first, or write a small one by hand ([schema](../skills/floorplan/references/schema.md)).
+`build.mjs` needs a `floorplan/architecture.json` in the project, so run the skill once first, or write a small one by hand ([schema](../skills/showplan/references/schema.md)).
 
 ## Tests
 
@@ -134,11 +134,11 @@ The tests use Node's built-in test runner, so there's nothing to install (`npm t
 
 Sample projects are written to a temp folder by `helpers.mjs` (`shopApp()`) or copied from `tests/fixtures/`. Anything secret-looking is assembled at runtime, so no real-looking key is ever committed.
 
-When you fix a bug in what Floorplan detects, add a sample that shows it, and check the test fails without your fix.
+When you fix a bug in what Showplan detects, add a sample that shows it, and check the test fails without your fix.
 
 ## Extending the viewer
 
-Files in `skills/floorplan/assets/ui/` are inlined into every map, in name order. They talk to the viewer only through `window.Floorplan`, which offers:
+Files in `skills/showplan/assets/ui/` are inlined into every map, in name order. They talk to the viewer only through `window.Floorplan`, which offers:
 - the graph and lookups;
 - navigation (`go`, `open`, `reveal`, `showBoard`, `playFlow`);
 - `addHeaderButton` and `addPanelSection('overview' | 'item', fn)`;
@@ -162,7 +162,7 @@ An engine must be read-only in a way its CLI enforces, not only because the prom
 - **No dependencies.** The scripts must run anywhere Node 18+ does, with nothing to install.
 - **Plain language first.** Anything the map shows people should make sense to an app's owner, not just its engineers.
 - **Never store or print secret values.** Health findings record where a secret is and a masked hint, never the value.
-- **One description of the process.** `workflow.json` describes the same steps as SKILL.md, for running Floorplan without an agent session ([unattended.md](unattended.md)). When you change one, change the other, and point at `references/` rather than repeating them.
+- **One description of the process.** `workflow.json` describes the same steps as SKILL.md, for running Showplan without an agent session ([unattended.md](unattended.md)). When you change one, change the other, and point at `references/` rather than repeating them.
 - **Keep examples generic.** Code comments, docs and prompts must not describe any real private project.
 
 ## Maintaining
@@ -205,13 +205,13 @@ An engine must be read-only in a way its CLI enforces, not only because the prom
    ```bash
    node tools/checksums.mjs
    ```
-5. Commit as `Floorplan X.Y.Z: <one-line headline>` and push `main`.
+5. Commit as `Showplan X.Y.Z: <one-line headline>` and push `main`.
 6. Tag and push the tag. This also checks that `plugin.json` and the marketplace entry agree:
    ```bash
-   claude plugin tag . -m "Floorplan %s" --push
+   claude plugin tag . -m "Showplan %s" --push
    ```
-7. On GitHub, publish a release from the tag (`floorplan--vX.Y.Z`), titled `Floorplan X.Y.Z`, with that version's changelog section as its notes.
-8. Reply on every issue and pull request the release fixes: what changed, the version, and how to get it (`claude plugin update floorplan@floorplan`).
+7. On GitHub, publish a release from the tag (`floorplan--vX.Y.Z`), titled `Showplan X.Y.Z`, with that version's changelog section as its notes.
+8. Reply on every issue and pull request the release fixes: what changed, the version, and how to get it (`claude plugin update showplan@showplan`).
 
 ### Issues and pull requests
 

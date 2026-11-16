@@ -135,7 +135,7 @@
   // can name a file or endpoint), the kinds of files involved and their note. Never code, values or the fix prompt.
   const reportText = (issue, reason) => [
     `**Check:** ${issue.kind} (${issue.severity})`,
-    `**What Floorplan said:** ${issue.title}`,
+    `**What Showplan said:** ${issue.title}`,
     `**File types:** ${[...new Set((issue.locations || []).map((l) => (/\.[^./]+$/.exec(l.file) || [l.file.split('/').pop()])[0]))].slice(0, 6).join(', ') || 'none'}`,
     ``,
     `**Why it's not a problem:**`,
@@ -146,7 +146,7 @@
       title: 'Not a problem?',
       html: `<p class="hc-hint">Mark “${h(issue.title)}” as a false alarm and it moves to the bottom of the ${CHECK}, out of the count. It comes back if this check finds something new there.</p>
         <textarea class="hc-why" placeholder="Why not? (optional) e.g. that value is a bcrypt hash, not the password" spellcheck="true"></textarea>
-        <label class="hc-rep"><input type="checkbox" class="hc-rep-on"><span>Also tell the Floorplan developer, so the check gets better. This opens a GitHub issue you can read and edit before sending. It includes only what’s shown below, never your code or any values.</span></label>
+        <label class="hc-rep"><input type="checkbox" class="hc-rep-on"><span>Also tell the Showplan developer, so the check gets better. This opens a GitHub issue you can read and edit before sending. It includes only what’s shown below, never your code or any values.</span></label>
         <pre class="hc-prev"></pre>`,
       actions: [{ label: 'Mark as not a problem', primary: true, icon: 'check', keepOpen: true, onClick: async (close) => {
         const reason = m.el.querySelector('.hc-why').value.trim();

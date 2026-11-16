@@ -146,7 +146,7 @@ export function buildPlanHealth({ graph, scan }) {
     return pc ? ridOf.get(routeKey(pc.method, pc.path)) || null : null;
   };
   const line = (r) => `- ${r.m} ${r.p} (${r.f})${r.name ? ` — ${r.name}` : ''}`;
-  const rebuild = 'Then rebuild the blueprint: run plan.mjs and build.mjs from the Floorplan skill, as its instructions say.';
+  const rebuild = 'Then rebuild the blueprint: run plan.mjs and build.mjs from the Showplan skill, as its instructions say.';
   // each item also carries `change`: a request to settle it from the map (the Ask bar's Change mode), for the person to finish or edit
   const names = (xs, max = 6) => { const l = xs.slice(0, max).concat(xs.length > max ? [`${xs.length - max} more`] : []); return l.length < 2 ? l.join('') : `${l.slice(0, -1).join(', ')} and ${l.at(-1)}`; };
   const ep = (r) => `${r.m} ${r.p}`;

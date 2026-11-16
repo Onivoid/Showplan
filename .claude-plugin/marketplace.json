@@ -1,17 +1,17 @@
 {
-  "name": "floorplan",
+  "name": "showplan",
   "owner": {
-    "name": "Hayden Smith",
-    "url": "https://github.com/haydenschmitty"
+    "name": "Onivoid",
+    "url": "https://github.com/Onivoid"
   },
   "metadata": {
-    "description": "Floorplan: an interactive map of your codebase for Claude Code."
+    "description": "Showplan: an interactive map of your codebase. Based on Floorplan by Hayden Smith."
   },
   "plugins": [
     {
-      "name": "floorplan",
+      "name": "showplan",
       "source": "./",
-      "description": "An interactive map of your codebase: every part, file and web request with a plain-English name and description, plus a health check, screens, guided flows and recent-work highlights.",
+      "description": "An interactive map of your codebase: every part, file and web request with a plain-language name and description, plus a health check, screens, guided flows and recent-work highlights.",
       "category": "productivity"
     }
   ]

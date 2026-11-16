@@ -1,10 +1,10 @@
 {
-  "name": "floorplan",
-  "version": "0.9.0",
-  "description": "See how your app actually fits together: an interactive map of your codebase where every part, file and web request has a plain-English name and description, with a health check, screens, guided flows, and highlights of what was just worked on.",
+  "name": "showplan",
+  "version": "0.11.0",
+  "description": "See how your app actually fits together: an interactive map of your codebase where every part, file and web request has a plain-language name and description, with a health check, screens, guided flows, and highlights of what was just worked on. Cursor-first skill.",
   "author": {
-    "name": "Hayden Smith",
-    "url": "https://github.com/haydenschmitty"
+    "name": "Onivoid",
+    "url": "https://github.com/Onivoid"
   },
   "license": "MIT",
   "keywords": [
@@ -14,7 +14,8 @@
     "visualization",
     "onboarding",
     "diagram",
-    "documentation"
+    "documentation",
+    "cursor"
   ],
   "skills": ["skills"]
 }

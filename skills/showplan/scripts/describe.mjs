@@ -38,9 +38,13 @@ const fileByPath = new Map(g.files.map((f) => [f.p, f]));
 const label = (id) => nodes.get(id)?.label || id;
 // Who the map is written for (architecture.json "audience", copied into graph.meta by build.mjs).
 const audience = g.meta?.audience === 'developers' ? 'developers' : 'everyone';
-const STYLE = audience === 'developers'
+const language = typeof g.meta?.language === 'string' && g.meta.language ? g.meta.language : null;
+const LANG = language
+  ? ` Write every name and description in "${language}" (the map's language). Do not use English unless that is the language.`
+  : ' Write every name and description in the user\'s language (or architecture.json "language" if set).';
+const STYLE = (audience === 'developers'
   ? 'technical style for engineers: name the frameworks, patterns and mechanics where they help.'
-  : 'plain language for a non-technical owner: what it does for the business or its users, in everyday words, still specific. No jargon (endpoint, ORM, blueprint, webhook, worker…): the path and method/URL are already shown next to it. See "Plain language" in references/writing-descriptions.md.';
+  : 'plain language for a non-technical owner: what it does for the business or its users, in everyday words, still specific. No jargon (endpoint, ORM, blueprint, webhook, worker…): the path and method/URL are already shown next to it. See "Plain language" in references/writing-descriptions.md.') + LANG;
 
 // file -> neighbours, summarised by owning node
 const usesOf = new Map(), usedBy = new Map();

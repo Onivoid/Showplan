@@ -1,5 +1,5 @@
-// Floorplan Cloud waitlist: after the map has been open a couple of minutes, a corner card asks once
-// whether you'd like an email when Floorplan Cloud launches. Nothing leaves your machine unless you
+// Showplan Cloud waitlist: after the map has been open a couple of minutes, a corner card asks once
+// whether you'd like an email when Showplan Cloud launches. Nothing leaves your machine unless you
 // click "Notify me", and then only the email in the box and "just me" or "with my team". Only shown
 // when the map is served by serve.mjs, which keeps the answer in ~/.floorplan/settings.json.
 (() => {
@@ -52,7 +52,7 @@
   }
 
   function pitch() {
-    view(`<div class="ce">Coming soon</div><h3>Floorplan Cloud</h3>
+    view(`<div class="ce">Coming soon</div><h3>Showplan Cloud</h3>
       <p>One shared map for your whole team: notes everyone can see, kept in sync with GitHub and updated on every push.</p>
       <p>Want an email when it launches?</p>
       <div class="ca"><button class="btn primary" data-yes>Let me know</button><button class="btn soft" data-later>Not now</button><button class="cl" data-never>Don't ask again</button></div>`,
@@ -60,17 +60,17 @@
   }
 
   function use() {
-    view(`<div class="ce">Floorplan Cloud</div><h3>How would you use it?</h3>
+    view(`<div class="ce">Showplan Cloud</div><h3>How would you use it?</h3>
       <div class="co"><button data-use="solo"><b>Just me</b><span>A map of my own projects</span></button><button data-use="team"><b>With my team</b><span>One shared map we all work from</span></button></div>`,
     (el) => el.querySelectorAll('[data-use]').forEach((b) => b.onclick = () => { answer.use = b.dataset.use; email(); }));
   }
 
   function email() {
-    view(`<div class="ce">Floorplan Cloud</div><h3>Where should we email you?</h3>
+    view(`<div class="ce">Showplan Cloud</div><h3>Where should we email you?</h3>
       <input type="email" placeholder="you@example.com" autocomplete="email" spellcheck="false" maxlength="254">
       <div class="cm"></div>
       <div class="ca"><button class="btn primary" data-send>Notify me</button>${S.cli && S.engine !== 'codex' ? '<button class="btn soft" data-claude>Use my Claude email</button>' : ''}</div>
-      <div class="cf">Only this email and your answer (${answer.use === 'team' ? 'with my team' : 'just me'}) are sent, to a private Google Sheet kept by Floorplan's maker. It's used only to tell you when Floorplan Cloud launches. <a href="${PRIVACY}" target="_blank" rel="noopener">Details</a></div>`,
+      <div class="cf">Only this email and your answer (${answer.use === 'team' ? 'with my team' : 'just me'}) are sent, to a private Google Sheet kept by Showplan's maker. It's used only to tell you when Showplan Cloud launches. <a href="${PRIVACY}" target="_blank" rel="noopener">Details</a></div>`,
     (el) => {
       const input = el.querySelector('input'), msg = el.querySelector('.cm'), send = el.querySelector('[data-send]');
       const say = (t, err) => { msg.textContent = t || ''; msg.classList.toggle('err', !!err); };
@@ -102,7 +102,7 @@
 
   function done(v) {
     card.dataset.done = '1';
-    view(`<div class="ce">Floorplan Cloud</div><h3>You're on the list</h3><p>We'll email <b>${h(v)}</b> when Floorplan Cloud launches. Thanks!</p>`);
+    view(`<div class="ce">Showplan Cloud</div><h3>You're on the list</h3><p>We'll email <b>${h(v)}</b> when Showplan Cloud launches. Thanks!</p>`);
     setTimeout(close, 8000);
   }
 

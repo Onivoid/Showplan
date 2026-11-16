@@ -13,6 +13,15 @@ This guide covers the names and descriptions in `descriptions/*.json` and the `l
 
 Use `"developers"` only when the user asks for it, or the map is plainly for an engineering team (a library, an SDK, infrastructure code). If you're unsure, use `"everyone"`.
 
+## Language
+
+Write **every** name and description in the map's language — the language the user is using in the chat, or the one they explicitly requested. Set `"language"` in `architecture.json` (e.g. `"fr"`, `"en"`, `"es"`) so refreshes stay consistent.
+
+- Translate the *content*: labels, summaries, file/route names and descriptions, tour and flow notes, recent-work notes.
+- Do not leave English placeholders when the map language is not English.
+- Product and brand names stay as they are (Stripe, Shopify, Postgres).
+- Examples in this guide are in English for the skill author; they are not a template for the map's wording language.
+
 ## Where they go
 
 `describe.mjs` writes one worksheet per module (`floorplan/.cache/worksheets/<key>.md`) and a matching skeleton (`floorplan/descriptions/<key>.json`):

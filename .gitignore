@@ -2,7 +2,7 @@
 .claude/
 CLAUDE.local.md
 
-# A floorplan made of this repo itself (root only: skills/floorplan/ is the plugin)
+# A map made of this repo itself (root only: skills/showplan/ is the skill; floorplan/ is the map folder)
 /floorplan/
 
 # OS and editor clutter

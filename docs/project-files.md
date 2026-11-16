@@ -1,6 +1,6 @@
 # What's in your project
 
-Floorplan writes to the `floorplan/` folder, and, only if you say yes, one personal note: a marked section of `CLAUDE.local.md` in Claude Code, or `.cursor/rules/floorplan.mdc` in Cursor. Neither is committed to git, and nothing else in your project is touched. Codex writes only the `floorplan/` folder. Run in [unattended mode](unattended.md) (from CI or your own scripts), it writes only the `floorplan/` folder.
+Showplan writes to the `floorplan/` folder, and, only if you say yes, one personal note: a marked section of `CLAUDE.local.md` in Claude Code, or `.cursor/rules/showplan.mdc` in Cursor. Neither is committed to git, and nothing else in your project is touched. Codex writes only the `floorplan/` folder. Run in [unattended mode](unattended.md) (from CI or your own scripts), it writes only the `floorplan/` folder.
 
 ## The `floorplan/` folder
 
@@ -33,41 +33,41 @@ Your edits to `architecture.json` and `descriptions/` are kept on every update. 
 
 Or just ask Claude or Codex ("rename 'Main server' to 'Shop API' on the floorplan").
 
-A blueprint is edited the same way, through `plan.json` and `architecture.json`, or from the map with the Ask bar's **Change** switch. The plan's format is in [`blueprint.md`](../skills/floorplan/references/blueprint.md).
+A blueprint is edited the same way, through `plan.json` and `architecture.json`, or from the map with the Ask bar's **Change** switch. The plan's format is in [`blueprint.md`](../skills/showplan/references/blueprint.md).
 
-The full format is in [`skills/floorplan/references/schema.md`](../skills/floorplan/references/schema.md), and the style guide for names and descriptions is in [`writing-descriptions.md`](../skills/floorplan/references/writing-descriptions.md).
+The full format is in [`skills/showplan/references/schema.md`](../skills/showplan/references/schema.md), and the style guide for names and descriptions is in [`writing-descriptions.md`](../skills/showplan/references/writing-descriptions.md).
 
 ## `CLAUDE.local.md`
 
-In Claude Code, after the first map, Claude asks whether future sessions in your project should use it. Only if you say yes, Floorplan adds a short marked section here, telling future Claude Code sessions that the map exists and how to look things up in it. `CLAUDE.local.md` is Claude Code's file for personal project notes, loaded at the start of every session like `CLAUDE.md`. Floorplan:
+In Claude Code, after the first map, Claude asks whether future sessions in your project should use it. Only if you say yes, Showplan adds a short marked section here, telling future Claude Code sessions that the map exists and how to look things up in it. `CLAUDE.local.md` is Claude Code's file for personal project notes, loaded at the start of every session like `CLAUDE.md`. Showplan:
 - creates the file if you don't have one;
 - only ever rewrites its own section, between `<!-- floorplan:start -->` and `<!-- floorplan:end -->`, and keeps it current on each update;
 - adds the file to your clone's private ignore list, `.git/info/exclude`.
 
-To remove it, delete the section. To keep it from coming back, put `<!-- floorplan:off -->` anywhere in `CLAUDE.local.md`. (Before 0.4.4, Floorplan added the section without asking; if you have it from then, it stays until you remove it.)
+To remove it, delete the section. To keep it from coming back, put `<!-- floorplan:off -->` anywhere in `CLAUDE.local.md`. (Before 0.4.4, Showplan added the section without asking; if you have it from then, it stays until you remove it.)
 
 A blueprint adds no section, since there's no code to look up yet. Claude offers it once the map switches to the real code.
 
-In Codex this file isn't touched. Codex has no personal, uncommitted notes file (`AGENTS.md` is shared with your team), so Floorplan doesn't add a note there.
+In Codex this file isn't touched. Codex has no personal, uncommitted notes file (`AGENTS.md` is shared with your team), so Showplan doesn't add a note there.
 
-## `.cursor/rules/floorplan.mdc`
+## `.cursor/rules/showplan.mdc`
 
-In Cursor, after the first map, Cursor asks whether later chats in your project should use it. Only if you say yes, Floorplan adds this one rule, telling later Cursor chats that the map exists and how to look things up in it. Floorplan:
+In Cursor, after the first map, Cursor asks whether later chats in your project should use it. Only if you say yes, Showplan adds this one rule, telling later Cursor chats that the map exists and how to look things up in it. Showplan:
 
 - creates the file if you don't have one;
 - only ever rewrites its own section, between `<!-- floorplan:start -->` and `<!-- floorplan:end -->`, and keeps it current on each update;
 - adds the file to your clone's private ignore list, `.git/info/exclude`.
 
-To remove it, delete the file. To keep it from coming back, put `<!-- floorplan:off -->` anywhere in it. Floorplan does not write `AGENTS.md`.
+To remove it, delete the file. To keep it from coming back, put `<!-- floorplan:off -->` anywhere in it. Showplan does not write `AGENTS.md`.
 
 A blueprint adds no rule, since there's no code to look up yet.
 
 ## Staying out of git
 
 - **`floorplan/`** contains its own `.gitignore` that ignores everything in the folder, including itself. Your `.gitignore` isn't changed, and the folder never appears in `git status`.
-- **`CLAUDE.local.md`** and **`.cursor/rules/floorplan.mdc`** are listed in `.git/info/exclude`, the per-clone ignore list that is never committed. If your project already ignores them, nothing is added.
+- **`CLAUDE.local.md`** and **`.cursor/rules/showplan.mdc`** are listed in `.git/info/exclude`, the per-clone ignore list that is never committed. If your project already ignores them, nothing is added.
 
-The map is personal to each clone. Teammates who install Floorplan make their own.
+The map is personal to each clone. Teammates who install Showplan make their own.
 
 If you committed a `floorplan/` folder before, ignoring it doesn't untrack those files. The build tells you the command that does, which keeps the files on disk:
 

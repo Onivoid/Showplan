@@ -1,0 +1,4 @@
+interface:
+  display_name: "Showplan"
+  short_description: "Draw an interactive, plain-language map of this codebase"
+  default_prompt: "Use $showplan to draw a Showplan map of this codebase, or update the existing one, and open it."

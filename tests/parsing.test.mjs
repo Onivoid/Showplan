@@ -1,4 +1,4 @@
-// What Floorplan reads out of source files: imports, endpoints, web requests and doc comments.
+// What Showplan reads out of source files: imports, endpoints, web requests and doc comments.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { lib } from './helpers.mjs';

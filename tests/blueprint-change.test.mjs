@@ -36,7 +36,7 @@ async function served(replies, root) {
   const base = await new Promise((resolve, reject) => {
     let out = '';
     const timer = setTimeout(() => reject(new Error(`server didn't start: ${out}`)), 20000);
-    server.stdout.on('data', (d) => { out += d; const m = /Floorplan: (http:\/\/\S+)/.exec(out); if (m) { clearTimeout(timer); resolve(m[1]); } });
+    server.stdout.on('data', (d) => { out += d; const m = /Showplan: (http:\/\/\S+)/.exec(out); if (m) { clearTimeout(timer); resolve(m[1]); } });
     server.on('exit', (code) => reject(new Error(`server exited (${code}): ${out}`)));
   });
   const page = JSON.parse(/window\.FLOORPLAN_SERVER=(\{.*?\});/.exec(await (await fetch(base + '/')).text())[1]);

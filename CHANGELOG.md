@@ -2,7 +2,12 @@
 
 ## Unreleased
 
-- **Cursor:** Floorplan runs as a Cursor skill. The scripts recognise a Cursor agent session, and a personal rule at `.cursor/rules/floorplan.mdc` is written only if you say yes. On a map made in Cursor the Ask bar does not start Cursor and does not fall through to another assistant: the question waits on the local server until `ask-poll.mjs`, run from the Cursor chat, replies. `--engine claude` or `--engine codex` still selects those, which is what **Change** on a blueprint needs. Claude Code and Codex behave as before when the map was made there. See [Floorplan in Cursor](docs/cursor.md).
+## 0.11.0 (2026-11-16)
+
+- **Showplan:** standalone rebrand of this project (skill name `showplan`, Cursor-first docs and install). The map folder stays `floorplan/` for upstream compatibility. Clear attribution to [Floorplan](https://github.com/haydenschmitty/floorplan) by Hayden Smith.
+- **Language:** the agent writes the whole map (labels, descriptions, tour, flows, recent work) in the user's language (or an explicit request), and may set `architecture.json` `"language"`.
+- **Cursor-first:** skill path resolution no longer depends on `${CLAUDE_SKILL_DIR}` being expanded; Cursor session detection also recognises `CURSOR_REQUEST_ID`. Claude Code and Codex remain supported.
+
 ## 0.10.0 (2026-11-15)
 
 - **One unusual letter no longer blanks the map:** to list the page's own scripts in its Content-Security-Policy, the build reads a lower-cased copy of the page, and a few letters get longer when lower-cased (the Turkish "İ" becomes two characters). One of them anywhere before the scripts, in a comment the scan picked up, a file name or a description, moved every later script by one character in that copy, so their fingerprints were wrong, the browser blocked them and the map drew nothing. Only A to Z are lower-cased now, the way the browser reads tag names, so the copy always lines up with the page. Fixed by @OfficialCodeVoyage in #118.
@@ -93,7 +98,7 @@
 - **Run Floorplan without an agent session:** in CI, in a script, or from your own tooling, with any model that can read files and return JSON. See [Running without an agent session](docs/unattended.md).
   - **Unattended mode** (`FLOORPLAN_UNATTENDED=1`, or `--unattended`): nothing is written outside `floorplan/` (no `CLAUDE.local.md`, no `.git/info/exclude`, no moving an old section out of `CLAUDE.md`), the map names no agent, `open.mjs` starts nothing, and a refresh whose build fails, or that finds no map, exits with an error.
   - **Results as JSON:** `--json` on `scan.mjs`, `build.mjs`, `describe.mjs`, `refresh.mjs`, `recent.mjs` and `status.mjs` prints one JSON object instead of the report. A refresh's NEXT list comes with stable codes (`fix_build`, `assign_new_files`, `describe`, `review_structure`, `recent_work`) a program can act on.
-  - **The workflow as data:** `skills/floorplan/workflow.json` describes the steps SKILL.md takes, which script to run, which jobs need a model, what each is given, the schema of its answer and when it's done, so a small program can follow it. A new test follows it through a first map and a refresh, so it keeps working.
+  - **The workflow as data:** `skills/showplan/workflow.json` describes the steps SKILL.md takes, which script to run, which jobs need a model, what each is given, the schema of its answer and when it's done, so a small program can follow it. A new test follows it through a first map and a refresh, so it keeps working.
   - **Maps that name no agent:** `FLOORPLAN_AGENT=none` (which unattended mode implies) makes the map's buttons say "Fix with AI" rather than naming Claude or Codex.
 - **A repo git can't read no longer disappears quietly:** if git isn't installed, or refuses a checkout because a different user owns it ("dubious ownership", common in containers), the scan now names the repo and the fix instead of leaving it off the map without a word. In unattended mode, that and finding no files at all are errors.
 - Nothing changes for people using Floorplan in Claude Code or Codex.
@@ -198,7 +203,7 @@
 
 ## 0.2.0 (2026-10-28)
 
-- **Works in Codex:** Floorplan is now a Codex plugin too, with the same skill, map and Health check, on your ChatGPT sign-in and with no API keys. Install it from the Codex app with no terminal: **Plugins → Add a marketplace →** `haydenschmitty/floorplan`, then install Floorplan. See [Floorplan in Codex](docs/codex.md).
+- **Works in Codex:** Floorplan is now a Codex plugin too, with the same skill, map and Health check, on your ChatGPT sign-in and with no API keys. Install it from the Codex app with no terminal: **Plugins → Add a marketplace →** `Onivoid/Showplan`, then install Floorplan. See [Floorplan in Codex](docs/codex.md).
 - **Ask through Codex:** in a map made with Codex, the Ask bar runs your own Codex on your computer, in its read-only sandbox, and these runs stay out of your Codex history. Follow-up questions keep the conversation. The map's server uses whichever agent made the map, and falls back to the other one if only that one is installed (`--engine claude|codex` picks one).
 - **Says who it's working with:** the Ask bar, the Health panel's "Fix with Claude" or "Fix with Codex" prompts, and request-a-flow all name the agent that made the map. In Codex, Floorplan leaves your project's notes alone (there's no Codex equivalent of the personal `CLAUDE.local.md`).
 - **Docs** cover both apps throughout, with a new [Floorplan in Codex](docs/codex.md) guide.

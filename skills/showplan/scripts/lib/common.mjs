@@ -139,7 +139,7 @@ export const isMapDir = (d) => ['architecture.json', 'plan.json', 'graph.json', 
  */
 export function keepOutOfGit(dir) {
   const gi = path.join(dir, '.gitignore');
-  const want = '# Floorplan keeps its map out of git: this ignores everything in this folder, this file included.\n*\n';
+  const want = '# Showplan keeps its map out of git: this ignores everything in this folder, this file included.\n*\n';
   fs.mkdirSync(dir, { recursive: true });
   try { if (!fs.existsSync(gi) || fs.readFileSync(gi, 'utf8') !== want) fs.writeFileSync(gi, want); } catch {}
   const tracked = (git(dir, ['ls-files', '--', '.']) || '').split('\n').filter(Boolean);
@@ -428,7 +428,7 @@ export function importStatements(code, head, { spaced = true } = {}) {
 }
 
 /**
- * A JSON file Floorplan, an agent or a person wrote (architecture.json, descriptions, recent-work.json, plan.json…),
+ * A JSON file Showplan, an agent or a person wrote (architecture.json, descriptions, recent-work.json, plan.json…),
  * parsed strictly. A byte order mark at the start is skipped: Windows PowerShell's Set-Content and Out-File, and
  * some editors, write one, and JSON.parse rejects it. Throws like JSON.parse for anything else that isn't JSON.
  */
@@ -495,7 +495,7 @@ export function parseArgs(argv, defaults = {}) {
 // ---------- running without an agent session ----------
 
 /**
- * Unattended mode: Floorplan run in CI, from a script or from your own tooling, with nobody there to ask.
+ * Unattended mode: Showplan run in CI, from a script or from your own tooling, with nobody there to ask.
  * FLOORPLAN_UNATTENDED=1 switches it on. It's an environment variable so it reaches the scripts another
  * script runs (refresh.mjs runs scan.mjs and build.mjs). In unattended mode nothing is written outside the
  * map folder, the map names no agent, and failures exit non-zero. See docs/unattended.md.
