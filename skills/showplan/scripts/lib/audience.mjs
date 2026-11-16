@@ -8,8 +8,8 @@ export const AUDIENCE_PRESETS = {
     label: 'Public',
     description:
       'People outside the company: prospects, a public docs site, a conference talk. High-level only. ' +
-      'No file paths, function names, route URLs, package names or security findings. Prefer everyday words ' +
-      '(database, payments, email) over product names (Postgres, Stripe, SendGrid) unless the product is the story.',
+      'No file paths, function names, route URLs, package names, commit SHAs, uncommitted local work, or security findings. ' +
+      'Prefer everyday words (database, payments, email) over product names (Postgres, Stripe, SendGrid) unless the product is the story.',
     profile: {
       includeDefault: ['flows', 'recent'],
       hidePaths: true,
@@ -28,7 +28,7 @@ export const AUDIENCE_PRESETS = {
     description:
       'Teammates and collaborators who know the product but should not need every implementation detail. ' +
       'Keep architecture, flows and connections clear. Soften low-level jargon; file paths may stay. ' +
-      'Hide function/export lists and the health check unless explicitly requested.',
+      'Hide function/export lists, commit SHAs (unless the project is open-source), and the health check unless explicitly requested.',
     profile: {
       includeDefault: ['flows', 'notes', 'recent'],
       hidePaths: false,
@@ -45,8 +45,8 @@ export const AUDIENCE_PRESETS = {
     id: 'serverless',
     label: 'Serverless / Local',
     description:
-      'Local or private use: almost the full map. Same detail as a personal Showplan, suitable for sharing ' +
-      'inside a trusted environment. Health check only when asked.',
+      'Local or private use: almost the full map. Same detail as a personal Showplan (including Recent work ' +
+      'commits and uncommitted stops), suitable for sharing inside a trusted environment. Health check only when asked.',
     profile: {
       includeDefault: ['flows', 'notes', 'recent'],
       hidePaths: false,

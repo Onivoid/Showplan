@@ -159,6 +159,8 @@ const ignoreGlobs = globsAt(isStrArr(arch.ignore) ? arch.ignore : [], 'ignore');
 const AUDIENCES = ['everyone', 'developers'];
 if (arch.audience !== undefined && !AUDIENCES.includes(arch.audience)) err(`audience "${arch.audience}" must be one of ${AUDIENCES.join(', ')}${didYouMean(String(arch.audience), AUDIENCES)}`);
 const audience = AUDIENCES.includes(arch.audience) ? arch.audience : 'everyone';
+// open-source maps may show commit SHAs on the Recent work timeline; private maps never do
+const openSource = arch.openSource === true;
 // map content language (labels, descriptions, tour, recent work): short tag like "fr", "en", "es"
 let language = null;
 if (arch.language !== undefined) {
@@ -385,13 +387,19 @@ if (fs.existsSync(recentFile)) {
       if (Array.isArray(t?.items)) t.items.forEach((it, ii) => scrubFields(it, ['note'], 'recent-work.json', `tasks[${ti}].items[${ii}]`));
       if (!isStr(t?.title)) return warn(`recent-work.json tasks[${ti}] needs a title`);
       const taskCommits = Array.isArray(t.commits) ? t.commits.filter(isStr).map((c) => c.slice(0, 40)).slice(0, 20) : [];
+      const mode = isStr(t.mode) && (t.mode === 'recent' || t.mode === 'releases' || t.mode === 'commits') ? t.mode : undefined;
+      const at = isStr(t.at) && !Number.isNaN(Date.parse(t.at)) ? t.at : undefined;
+      const uncommitted = t.uncommitted === true;
       tasks.push({
         title: t.title,
         request: isStr(t.request) ? t.request : '',
         summary: isStr(t.summary) ? t.summary : '',
         ...(isStr(t.status) ? { status: t.status } : {}),
         ...(isStr(t.release) ? { release: t.release.slice(0, 100) } : {}),
-        ...(isStr(t.mode) && (t.mode === 'recent' || t.mode === 'releases') ? { mode: t.mode } : {}),
+        ...(mode ? { mode } : {}),
+        ...(at ? { at } : {}),
+        ...(uncommitted ? { uncommitted: true } : {}),
+        // Personal map keeps SHAs; audience export sanitize may strip them (same rules as paths/symbols).
         ...(taskCommits.length ? { commits: taskCommits } : {}),
       });
       for (const it of Array.isArray(t.items) ? t.items : []) {
@@ -401,12 +409,20 @@ if (fs.existsSync(recentFile)) {
         items.push({
           id, task: tasks.length - 1, change: it.change === 'new' ? 'new' : 'changed', note: isStr(it.note) ? it.note : '',
           ...(isStr(it.release) ? { release: it.release.slice(0, 100) } : {}),
+          ...(it.uncommitted === true || uncommitted ? { uncommitted: true } : {}),
           ...(itemCommits.length ? { commits: itemCommits } : {}),
         });
       }
     });
     if (missing.length) warn(`recent-work.json: ${missing.length} ref(s) aren't on the map and were left out (use a file path, a node id or "METHOD /path"): ${missing.slice(0, 5).map(String).join(', ')}${missing.length > 5 ? '…' : ''}`);
-    outRecent = { updatedAt: isStr(rw.updatedAt) ? rw.updatedAt : fs.statSync(recentFile).mtime.toISOString(), tasks, items };
+    const source = isStr(rw.source) && ['recent', 'releases', 'commits'].includes(rw.source) ? rw.source : null;
+    outRecent = {
+      updatedAt: isStr(rw.updatedAt) ? rw.updatedAt : fs.statSync(recentFile).mtime.toISOString(),
+      // Personal Showplan always may show commits; export sanitize turns this off when needed.
+      showCommits: true,
+      ...(source ? { source } : {}),
+      tasks, items,
+    };
   }
 }
 const notes = new Map();
@@ -588,6 +604,7 @@ const graph = {
   meta: {
     generatedAt: new Date().toISOString(), scanAt: scan.generatedAt, rootName: scan.rootName, root: scan.root,
     audience, agent,
+    ...(openSource ? { openSource: true } : {}),
     ...(language ? { language } : {}),
     ...(editor.template ? { editor: editor.template } : {}),
     ...(scan.blueprint ? { blueprint: { source: scan.blueprint.source, stack: scan.blueprint.stack, assumptions: scan.blueprint.assumptions } } : {}),

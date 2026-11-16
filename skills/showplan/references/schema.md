@@ -17,6 +17,7 @@ Contents: [Top level](#top-level) · [nodes](#nodes) · [Assignment rules](#how-
 | `tour` | array | no | the "Start here" tour shown on first open: 3–8 stops `{ "node": "<node id or file path>", "title": "…", "note": "…" }`, in plain language, in the order a newcomer should see them. The first flow is appended automatically |
 | `audience` | `"everyone"` \| `"developers"` | no | who names and descriptions are written for. Default `"everyone"`: plain language a non-technical owner understands (what it does for the business, in everyday words). `"developers"`: technical style for engineers |
 | `language` | string | no | short language tag for **all** map wording (`fr`, `en`, `es`, `pt-BR`, …). Labels, summaries, descriptions, tour, flows, recent-work notes **and Health** follow this language (`fr`/`en` built-in for Health + UI chrome; other languages via `floorplan/locale.json`). Detect from the user's conversation, or set when they ask. Keep it stable across refreshes |
+| `openSource` | boolean | no | when `true`, audience exports may keep commit SHAs on Recent work (same idea as leaving more detail on a public map). The **personal** map always keeps SHAs; export sanitize strips them for Public/Team unless this is set |
 | `include` | string[] | no | file categories to map. Default `["code"]`. Others: `config`, `docs`. The scan and the build list what's left out, by category, on their `NOT MAPPED` line |
 | `ignore` | string[] | no | globs for files to leave off the board entirely (generated code, vendored libs, fixtures) |
 | `editor` | string | no | the editor **Open in editor** opens. Default VS Code. A name (`vscode`, `vscode-insiders`, `vscodium`, `cursor`, `windsurf`, `zed`, `idea`, `phpstorm`) or a link with `{path}`, `{line}` and `{column}` in an editor's own scheme, like `"zed://file/{path}:{line}"`. Set it only when the user says which editor they use |
@@ -103,16 +104,19 @@ Good candidates:
 
 ## recent work
 
-`floorplan/recent-work.json` is a separate file, rewritten on every make and update. It holds what was just worked on, framed against what the user asked for. The viewer gives those cards a green "Changed"/"New" tag, shows "N changed" on the parts containing them, adds each `note` to the card's hover, and lists the tasks under a **Recent work** button and in the overview panel.
+`floorplan/recent-work.json` is a separate file, rewritten on every make and update. It holds what was just worked on, framed against what the user asked for. The personal map shows a **timeline** of grouped stops (conversation, releases, commit clusters, and **uncommitted** local WIP). Cards get a green "Changed"/"New" tag; audience exports sanitize Recent work with the same aggressiveness as the rest of the map (see [export.md](export.md)).
 
 ```json
 {
   "updatedAt": "2026-10-27T10:30:00Z",
+  "source": "recent",
   "tasks": [
     {
       "title": "Refunds from the order page",
       "request": "Let staff refund an order straight from its order page",
       "summary": "Staff can now refund all or part of an order from its page. The money goes back to the customer's card through Stripe, and they get an email. Refunds over $500 need a manager.",
+      "mode": "recent",
+      "at": "2026-10-27T10:30:00Z",
       "items": [
         { "ref": "shop-api/app/services/refunds.py", "change": "new", "note": "New: works out how much to refund, sends it back through Stripe and records it on the order. This is the heart of what was asked." },
         { "ref": "POST /api/orders/<int:order_id>/refund", "change": "new", "note": "The request the Refund button sends; it checks the manager limit before anything is refunded." }
@@ -124,21 +128,27 @@ Good candidates:
 
 | field | meaning |
 |---|---|
-| `tasks[].title` | 2–5 words, shown on hover and as the board title |
+| `source` | optional overall source: `"recent"`, `"releases"`, or `"commits"` |
+| `tasks[].title` | 2–5 words, shown on the timeline and as the board title |
 | `tasks[].request` | what the user asked for, in their words (shortened). Shown as "You asked: …" |
 | `tasks[].summary` | 1–2 sentences: what was done toward it, and where it stands. Mention deletions here; deleted files aren't on the map |
-| `tasks[].mode` | optional `"recent"` (default / local changes) or `"releases"` (historical, from GitHub Releases) |
+| `tasks[].at` | optional ISO timestamp for timeline order (release date, commit date, or when the work landed) |
+| `tasks[].mode` | optional `"recent"` (default / local changes), `"releases"`, or `"commits"` (grouped local history) |
+| `tasks[].uncommitted` | optional `true` when this stop is **local working-tree** changes not yet committed (shown as "Uncommitted" on the personal timeline) |
 | `tasks[].release` | optional release tag (e.g. `v1.2.0`) when the task comes from a release |
-| `tasks[].commits` | optional list of commit SHAs linked to this task |
+| `tasks[].commits` | optional list of commit SHAs linked to this task (kept on the personal map; export may strip them) |
 | `items[].ref` | a file path, a node id, or `"METHOD /path"` exactly as on the map. Refs that aren't on the map are left out with a warning |
 | `items[].change` | `"new"` or `"changed"` (default) |
 | `items[].note` | 1–2 plain sentences: what changed on this card, and how it serves the request |
-| `items[].commits` | optional commit SHAs for this card |
+| `items[].uncommitted` | optional `true` for cards that only changed in the working tree |
+| `items[].commits` | optional commit SHAs for this card (same personal vs export rule) |
 | `items[].release` | optional release tag for this card |
 
 `{ "tasks": [] }` clears all highlights.
 
-**Two modes.** (1) **Recent** — current local work (conversation + `recent.mjs` facts). (2) **Releases** — historical patch notes from GitHub Releases via `releases.mjs` (lighter than full history). Both write the same `recent-work.json` shape.
+**Timeline.** The viewer lists tasks as a vertical timeline (uncommitted first, then newest). Not one card per commit.
+
+**Sources.** Always grounded in the **local** git tree when history is used. Prefer **Releases** (`releases.mjs`) for historical notes. If there are no releases, ask the user before building a **commits** timeline, then **group coherent commits** into one task when you can (same feature / PR / theme). Mark working-tree-only work with `"uncommitted": true`. The personal Showplan keeps the full timeline; Public/Team exports sanitize Recent work like paths/symbols (drop uncommitted on Public; drop SHAs unless `"openSource": true`).
 
 ## Full example
 

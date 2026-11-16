@@ -102,9 +102,13 @@ for (const r of G.meta.repos || []) {
   }
 }
 
-L.push('', 'Write floorplan/recent-work.json (refs: a file path, a node id, or "METHOD /path"; see references/schema.md#recent-work):',
-  '  { "tasks": [ { "title": "…", "request": "what the user asked for", "summary": "what was done toward it, and where it stands",',
-  '      "items": [ { "ref": "<file path>", "change": "changed|new", "note": "what changed here, and how it serves the request" } ] } ] }',
+L.push('', 'Write floorplan/recent-work.json as a timeline of grouped stops (not one task per commit).',
+  '  Prefer releases when available; ask before a commits-only timeline. Mark working-tree-only work with "uncommitted": true.',
+  '  Personal map keeps commits; audience export sanitize strips them like paths/symbols unless openSource.',
+  '  Shape (refs: file path, node id, or "METHOD /path"; see references/schema.md#recent-work):',
+  '  { "tasks": [ { "title": "…", "request": "what the user asked for", "summary": "what was done, and where it stands",',
+  '      "uncommitted": false, "mode": "recent|releases|commits", "at": "ISO date", "commits": ["abc…"],',
+  '      "items": [ { "ref": "<file path>", "change": "changed|new", "note": "what changed here" } ] } ] }',
   'Then run build.mjs. Use { "tasks": [] } when nothing was worked on.');
 const changedSince = !!changes && [...Object.values(changes.files), ...Object.values(changes.routes)].some((a) => a.length);
 // nothingRecent: no changes since the last map, nothing uncommitted and no commits, so recent-work.json is { "tasks": [] }

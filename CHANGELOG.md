@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 (2026-11-16)
+
+- **Recent work timeline:** the personal map shows Recent work as a vertical timeline of grouped stops (conversation, releases, commit clusters), not one card per commit.
+- **Uncommitted WIP:** local working-tree changes are marked `"uncommitted": true` and labeled clearly on the timeline (Floorplan’s original “what’s in flight” use).
+- **Same sanitize as the rest of the map:** the personal Showplan keeps the full timeline (including commit SHAs). Audience export applies the same aggressiveness as paths/symbols — Public drops uncommitted stops and SHAs (unless `"openSource": true`); Team drops SHAs unless open-source; Serverless keeps everything.
+- **Commits with permission:** if there are no GitHub Releases, the agent asks before building a commits timeline, then groups coherent commits when possible.
+
 ## 0.3.0 (2026-11-16)
 
 - **Branding:** new Showplan “S” mark across the map, favicon, plugin icons and README. Visible product links and the Cursor rule path (`.cursor/rules/showplan.mdc`) say Showplan; the map folder stays `floorplan/` for compatibility.

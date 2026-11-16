@@ -39,8 +39,18 @@ node <skill>/scripts/export.mjs <root> --audience "Non-technical board members" 
 
 Include Recent work with `--include …,recent` (default for public/team). Rewrite tasks as **patch notes** for the audience in `export-sanitize.json` → `recent`.
 
-- **Recent mode** (default): local / conversation work via `recent.mjs`.
+Recent work follows the **same sanitize aggressiveness** as the rest of the map:
+
+| Audience | Recent work |
+|---|---|
+| Personal map | Full timeline: commits, grouped history, **uncommitted** WIP labeled |
+| `public` | No uncommitted stops; no commit SHAs unless `architecture.json` has `"openSource": true` |
+| `team` | Timeline kept; SHAs stripped unless open-source |
+| `serverless` | Same as personal |
+
+- **Recent mode** (default): local / conversation work via `recent.mjs` (mark working-tree stops with `"uncommitted": true`).
 - **Releases mode**: `node <skill>/scripts/releases.mjs <root>` then write `recent-work.json` with `"mode": "releases"`, `"release": "v1.2.0"`, optional `"commits": ["abc…"]`.
+- **Commits mode**: only with the user's permission when there are no releases; group coherent commits into one stop when possible.
 
 ## Classic export (unchanged)
 

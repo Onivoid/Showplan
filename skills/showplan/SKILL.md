@@ -151,11 +151,15 @@ The codebase root is the argument if one was given, otherwise the current direct
 
    Then rebuild. The build reports `DESCRIPTIONS files X/Y · routes X/Y`. Get both to 100%: re-run describe.mjs and it lists only what's still missing.
 
-7. **Mark recent work.** The map highlights what was just worked on: those cards get a green "Changed"/"New" tag, the parts containing them show "N changed", hovering shows your note, and a **Recent work** button lays them out on one board. Do this on every make and every update, because it replaces the previous highlights.
+7. **Mark recent work.** The map highlights what was just worked on: green tags on cards, and a **Recent work** timeline (grouped stops over time). Do this on every make and every update; it replaces the previous highlights.
    `node ${CLAUDE_SKILL_DIR}/scripts/recent.mjs <root>`
-   It lists what changed since the previous map, uncommitted changes and recent commits, each matched to the card it appears as. The *why* comes from you:
-   - **What counts.** Work done in this conversation, by you or your subagents, is the main source. Lean on what you know about it. If you did nothing here (a fresh session), use what recent.mjs shows that is clearly in flight: uncommitted changes and the latest commits. If there's nothing, write `{ "tasks": [] }` so old highlights clear.
-   - **Write `floorplan/recent-work.json`.** Use one task per thing the user asked for: `title` (2–5 words), `request` (what they asked, in their words, shortened; leave it `""` when nobody asked here, as when working from commits, because the map shows it as "You asked: …"), `summary` (1–2 sentences on what was done toward it and where it stands, including anything deleted, since deleted files can't be highlighted). Then add `items`: the cards that changed, as a file path, node id or `"METHOD /path"`, with `change` (`"new"` or `"changed"`) and a `note`.
+   It lists what changed since the previous map, uncommitted changes and recent commits (local git), each matched to the card it appears as. The *why* comes from you:
+   - **What counts.** Work done in this conversation is the main source. If you did nothing here, use what recent.mjs shows in flight. If there's nothing, write `{ "tasks": [] }` so old highlights clear.
+   - **History sources.** Prefer GitHub Releases via `releases.mjs` for a historical timeline (`mode: "releases"`, set `at` to the release date). If there are **no** releases, **ask the user** before building a timeline from commits; only then use local `git log` / recent.mjs commits (`mode: "commits"`, `source: "commits"`).
+   - **Group commits.** Never one timeline stop per commit when they belong together. Cluster related commits (same feature, PR, or theme) into **one** task with a clear title/summary; link several SHAs on that task when useful.
+   - **Uncommitted.** Working-tree changes from `recent.mjs` get their own stop (or are folded into the current conversation stop) with `"uncommitted": true` so the timeline labels them clearly.
+   - **Personal vs export.** The personal map keeps the **full** timeline (commits + uncommitted). Audience export sanitize applies the **same rules as the rest of the map**: Public drops uncommitted WIP and commit SHAs (unless `"openSource": true`); Team drops SHAs unless open-source; Serverless keeps everything. Set `"openSource": true` only when the user confirms the project is public/open-source.
+   - **Write `floorplan/recent-work.json`.** One task per coherent stop: `title`, `request` (or `""`), `summary`, optional `at`, `mode`, `uncommitted`, `release`, `commits`, and `items` (`ref`, `change`, `note`). Format: [references/schema.md#recent-work](references/schema.md#recent-work).
    - **Every note answers "how does this relate to what they asked for?"** In one or two plain sentences, say what changed on this card and why the request needed it. For example, write "Now catches web requests whose address is built up in a variable first, which is why the orders and inventory screens were showing no server calls." Not "Added flattenTemplates and variableUse helpers".
    - **Highlight what mattered.** Pick the files and endpoints whose behaviour changed for this request, usually 3–15. Skip tests and drive-by edits unless they're the point. A file with a changed endpoint can list both the file and the endpoint.
    - **Keep the code's words out unless the audience is developers.** Never put secrets in notes, and never invent example values: say only what the code shows.
@@ -207,7 +211,7 @@ When the user wants to send the map to someone, prefer an **audience export** so
 
 **Classic share** (no audience rewrite) still works: `node floorplan/serve.mjs --export [--include flows,notes,recent,health]`, or the map's **Export** button (Serverless / Local). Leave health out unless they ask; it lists open endpoints and where secrets sit (never values).
 
-**Recent work modes:** keep the current local Recent mode (`recent.mjs`). For historical patch notes, run `node <skill folder>/scripts/releases.mjs <root>` (GitHub Releases via `gh`, else git tags) and write `recent-work.json` with `"mode": "releases"`, optional `"release"` and `"commits"` (see schema).
+**Recent work modes:** personal timeline from `recent.mjs` (conversation + uncommitted labeled + optional grouped commits). For historical patch notes, run `node <skill folder>/scripts/releases.mjs <root>` and write `"mode": "releases"`. Audience exports sanitize Recent work like the rest of the map (see [references/export.md](references/export.md)).
 
 ### What else the map gives them (automatic)
 

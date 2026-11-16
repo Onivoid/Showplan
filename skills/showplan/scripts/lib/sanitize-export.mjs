@@ -4,6 +4,52 @@ import { TECH_PLAIN, resolveAudience } from './audience.mjs';
 
 const EXPORT_PARTS = ['flows', 'notes', 'recent', 'health'];
 
+/**
+ * Recent work on exports follows the same aggressiveness as the rest of the map:
+ * - personal map (build) keeps everything, including commit SHAs and uncommitted WIP
+ * - public (hidePaths): drop uncommitted stops; drop commit SHAs unless openSource
+ * - team (hideSymbols): keep timeline, but drop SHAs unless openSource
+ * - serverless: keep the personal Recent work as-is
+ */
+function sanitizeRecent(recent, profile, meta) {
+  if (!recent || typeof recent !== 'object') return recent;
+  const openSource = meta?.openSource === true;
+  const stripCommits = !openSource && (profile.hidePaths || profile.hideSymbols);
+  const dropUncommitted = !!profile.hidePaths; // public / path-hiding audiences: no local WIP
+
+  let tasks = Array.isArray(recent.tasks) ? recent.tasks.slice() : [];
+  let items = Array.isArray(recent.items) ? recent.items.slice() : [];
+
+  if (dropUncommitted) {
+    const keep = new Map();
+    let next = 0;
+    const keptTasks = [];
+    tasks.forEach((t, i) => {
+      if (t?.uncommitted) return;
+      keep.set(i, next++);
+      keptTasks.push(t);
+    });
+    tasks = keptTasks;
+    items = items
+      .filter((it) => !it?.uncommitted && keep.has(it.task))
+      .map((it) => ({ ...it, task: keep.get(it.task) }));
+  }
+
+  const scrubCommits = (obj) => {
+    if (!obj || typeof obj !== 'object') return obj;
+    const next = { ...obj };
+    if (stripCommits) delete next.commits;
+    return next;
+  };
+
+  return {
+    ...recent,
+    showCommits: openSource || (!profile.hidePaths && !profile.hideSymbols),
+    tasks: tasks.map(scrubCommits),
+    items: items.map(scrubCommits),
+  };
+}
+
 const plainTech = (s) => {
   if (typeof s !== 'string' || !s) return s;
   let out = s;
@@ -182,6 +228,7 @@ export function structuralSanitize(graph, audience, { include, generalizeTech = 
   g.flows = on.includes('flows') ? g.flows || [] : [];
   g.tour = on.includes('flows') ? g.tour || [] : [];
   if (!on.includes('recent')) delete g.recent;
+  else if (g.recent) g.recent = sanitizeRecent(g.recent, profile, g.meta);
   if (!on.includes('health') || profile.hideHealth) delete g.health;
 
   // screens / health often leak paths; drop screens on public

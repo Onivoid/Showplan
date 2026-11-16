@@ -114,7 +114,47 @@ test('recent-work commits and release pass through the build', () => {
     const g = readJson(path.join(root, 'floorplan', 'graph.json'));
     assert.equal(g.recent.tasks[0].release, 'v1.0.0');
     assert.equal(g.recent.tasks[0].mode, 'releases');
+    assert.equal(g.recent.showCommits, true);
     assert.deepEqual(g.recent.tasks[0].commits, ['abc1234ffff']);
     assert.deepEqual(g.recent.items[0].commits, ['abc1234ffff']);
   } finally { cleanup(root); }
+});
+
+test('personal recent keeps commits; public sanitize strips them and uncommitted', async () => {
+  const { sanitizeForExport } = await lib('sanitize-export.mjs');
+  const recent = {
+    showCommits: true,
+    tasks: [
+      { title: 'WIP refunds', summary: 'Local edits', uncommitted: true, commits: ['deadbeef'] },
+      { title: 'Ship v1', summary: 'Released', mode: 'releases', release: 'v1.0.0', commits: ['abc1234ffff'] },
+    ],
+    items: [
+      { id: 'f:a.js', task: 0, change: 'changed', note: 'draft', uncommitted: true, commits: ['deadbeef'] },
+      { id: 'f:b.js', task: 1, change: 'changed', note: 'shipped', commits: ['abc1234ffff'] },
+    ],
+  };
+  const base = {
+    meta: { root: '/tmp/x', repos: [], language: 'en' },
+    project: { name: 'Shop', summary: '' },
+    nodes: [], files: [], routes: [], flows: [], tour: [],
+    recent,
+  };
+  const personalish = sanitizeForExport(base, { audience: 'serverless' }).graph.recent;
+  assert.equal(personalish.showCommits, true);
+  assert.equal(personalish.tasks.length, 2);
+  assert.deepEqual(personalish.tasks[1].commits, ['abc1234ffff']);
+
+  const pub = sanitizeForExport(base, { audience: 'public' }).graph.recent;
+  assert.equal(pub.showCommits, false);
+  assert.equal(pub.tasks.length, 1);
+  assert.equal(pub.tasks[0].title, 'Ship v1');
+  assert.equal(pub.tasks[0].commits, undefined);
+  assert.equal(pub.items.length, 1);
+  assert.equal(pub.items[0].task, 0);
+  assert.equal(pub.items[0].commits, undefined);
+
+  const open = sanitizeForExport({ ...base, meta: { ...base.meta, openSource: true } }, { audience: 'public' }).graph.recent;
+  assert.equal(open.showCommits, true);
+  assert.equal(open.tasks.length, 1, 'public still drops uncommitted even when open-source');
+  assert.deepEqual(open.tasks[0].commits, ['abc1234ffff']);
 });
