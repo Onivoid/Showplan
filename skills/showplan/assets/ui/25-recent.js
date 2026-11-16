@@ -1,6 +1,5 @@
-// Recent work as a timeline: grouped tasks (conversation / releases / commit clusters / uncommitted WIP)
-// from floorplan/recent-work.json. Personal maps keep commit SHAs; audience export may strip them.
-// Talks through window.Floorplan.
+// Recent work: changed map cards laid out as a chronological timeline board (stops = grouped
+// tasks / releases / commit clusters / uncommitted WIP). Talks through window.Floorplan.
 (() => {
   const SC = window.Floorplan;
   const R = SC && SC.graph.recent;
@@ -20,25 +19,19 @@
     #btn-recent svg.i { color: var(--recent); }
     #btn-recent .badge { background: var(--recent); color: var(--on-recent-text); }
     .rw-when { color: var(--text-3); font-size: 12px; margin-top: 4px; }
-    .rw-tl { position: relative; margin: 12px 0 0; padding: 0 0 0 18px; }
-    .rw-tl::before { content: ""; position: absolute; left: 5px; top: 4px; bottom: 4px; width: 2px; background: color-mix(in srgb, var(--recent) 35%, rgba(var(--ink), .12)); border-radius: 1px; }
-    .rw-ev { position: relative; padding: 0 0 16px 14px; }
-    .rw-ev:last-child { padding-bottom: 2px; }
-    .rw-ev::before { content: ""; position: absolute; left: -16px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--recent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--recent) 22%, transparent); }
-    .rw-card { padding: 12px 14px; border-radius: 16px; background: color-mix(in srgb, var(--recent) 6%, transparent); }
-    .rw-tt { font-weight: 600; line-height: 1.4; color: var(--text); }
-    .rw-date { color: var(--text-3); font-size: 11.5px; margin-top: 3px; }
-    .rw-q { color: var(--text-3); font-size: 12.5px; line-height: 1.5; margin-top: 6px; }
-    .rw-q b { color: var(--text-2); font-weight: 500; }
-    .rw-s { color: var(--text-2); font-size: 12.5px; line-height: 1.55; margin-top: 6px; }
-    .rw-meta { color: var(--text-3); font-size: 12px; line-height: 1.45; margin-top: 6px; }
+    .rw-stop { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid rgba(var(--ink), .06); }
+    .rw-stop:last-child { border-bottom: 0; }
+    .rw-dot { flex: none; width: 10px; height: 10px; margin-top: 5px; border-radius: 50%; background: var(--recent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--recent) 22%, transparent); }
+    .rw-stop.wip .rw-dot { background: color-mix(in srgb, var(--recent) 55%, var(--text-3)); }
+    .rw-tt { font-weight: 600; line-height: 1.35; color: var(--text); }
+    .rw-sub { color: var(--text-3); font-size: 12px; margin-top: 2px; }
+    .rw-s { color: var(--text-2); font-size: 12.5px; line-height: 1.5; margin-top: 4px; }
     .rw-a { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
     .rw-a .btn { height: 30px; padding: 0 12px; font-size: 12.5px; gap: 6px; }
     .rw-note { margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--recent) 9%, transparent); font-size: 13px; line-height: 1.55; }
     .rw-note .rw-h { color: var(--recent); font-size: 11.5px; font-weight: 600; margin-bottom: 3px; }
-    .rw-src { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; color: var(--recent); margin-bottom: 4px; }
-    .rw-ev-wip::before { background: color-mix(in srgb, var(--recent) 55%, var(--text-3)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--recent) 12%, transparent); }
-    .rw-ev-wip .rw-src { color: color-mix(in srgb, var(--recent) 70%, var(--text-2)); }
+    .rw-q { color: var(--text-3); font-size: 12.5px; line-height: 1.5; margin-top: 6px; }
+    .rw-q b { color: var(--text-2); font-weight: 500; }
   `;
   document.head.appendChild(style);
 
@@ -54,80 +47,83 @@
   };
   const itemsOf = (ti) => items.filter((it) => ti == null || it.task === ti);
   const shortSha = (c) => String(c || '').slice(0, 7);
-  const sourceLabel = (task) => {
-    if (task.uncommitted) return t('uncommitted', 'Uncommitted');
-    if (task.mode === 'releases') return t('fromReleases', 'From releases');
-    if (task.mode === 'commits') return t('fromCommits', 'From commits');
-    return t('fromRecent', 'Recent');
-  };
   const taskAt = (task) => task.at || R.updatedAt || null;
-  const ordered = tasks.map((task, i) => ({ t: task, i })).filter(({ i }) => itemsOf(i).length)
+
+  const ordered = tasks.map((task, i) => ({ task, i })).filter(({ i }) => itemsOf(i).length)
     .sort((a, b) => {
-      // Uncommitted WIP floats to the top; then newest first.
-      const ua = a.t.uncommitted ? 1 : 0, ub = b.t.uncommitted ? 1 : 0;
+      const ua = a.task.uncommitted ? 1 : 0, ub = b.task.uncommitted ? 1 : 0;
       if (ua !== ub) return ub - ua;
-      return (Date.parse(taskAt(b.t)) || 0) - (Date.parse(taskAt(a.t)) || 0);
+      return (Date.parse(taskAt(b.task)) || 0) - (Date.parse(taskAt(a.task)) || 0);
     });
 
-  const metaLine = (task) => {
+  const stopSubtitle = (task) => {
+    if (task.uncommitted) return t('uncommittedHint', 'Local changes, not committed yet');
     const bits = [];
-    if (task.uncommitted) bits.push(h(t('uncommittedHint', 'Local changes, not committed yet')));
-    if (task.release) bits.push(`${t('release', 'Release')} ${h(task.release)}`);
+    if (task.release) bits.push(`${t('release', 'Release')} ${task.release}`);
+    else if (task.mode === 'releases') bits.push(t('fromReleases', 'From releases'));
+    else if (task.mode === 'commits') bits.push(t('fromCommits', 'From commits'));
+    const at = taskAt(task);
+    if (at) bits.push(fmtDay(at) || '');
     if (showCommits && Array.isArray(task.commits) && task.commits.length) {
-      bits.push(task.commits.slice(0, 5).map(shortSha).map(h).join(', ') + (task.commits.length > 5 ? '…' : ''));
+      bits.push(task.commits.slice(0, 3).map(shortSha).join(', ') + (task.commits.length > 3 ? '…' : ''));
     }
-    return bits.length ? `<div class="rw-meta">${bits.join(' · ')}</div>` : '';
+    return bits.filter(Boolean).join(' · ');
   };
 
-  function showCards(ti) {
-    const one = ti != null ? tasks[ti] : tasks.length === 1 ? tasks[0] : null;
+  const boardItems = (list) => list.map((it) => ({
+    id: it.id,
+    note: it.note || (it.change === 'new' ? t('new', 'New') : t('changed', 'Changed'))
+      + (it.uncommitted || tasks[it.task]?.uncommitted ? ` · ${t('uncommitted', 'Uncommitted')}` : ''),
+  }));
+
+  const stopsFrom = (rows) => rows.map(({ task, i }) => ({
+    title: task.title,
+    subtitle: stopSubtitle(task),
+    uncommitted: !!task.uncommitted,
+    ids: itemsOf(i).map((it) => it.id),
+  }));
+
+  /** Open the map board with the changed cards arranged as a timeline. */
+  function showTimeline(ti) {
+    const rows = ti != null ? ordered.filter(({ i }) => i === ti) : ordered;
+    if (!rows.length) return;
+    const one = ti != null ? tasks[ti] : rows.length === 1 ? rows[0].task : null;
+    const list = rows.flatMap(({ i }) => itemsOf(i));
     const releaseBit = one?.release ? `\n\n${t('release', 'Release')}: ${one.release}` : '';
     const commitBit = showCommits && one?.commits?.length ? `\n${t('commits', 'Commits')}: ${one.commits.map(shortSha).join(', ')}` : '';
     SC.showBoard({
-      kind: t('recentWork', 'Recent work'), icon: 'recent',
+      kind: t('recentWork', 'Recent work'),
+      icon: 'recent',
       title: one ? one.title : t('recentWork', 'Recent work'),
-      question: one ? (one.request ? `${t('youAsked', 'You asked:')} ${one.request}` : (one.release ? `${t('release', 'Release')} ${one.release}` : '')) : tasks.map((x) => x.title).join(' · '),
-      answer: (one ? one.summary : tasks.map((x) => `**${x.title}.** ${x.summary}`).join('\n\n')) + releaseBit + commitBit,
-      items: itemsOf(ti != null ? ti : null).map((it) => ({ id: it.id, note: it.note || (it.change === 'new' ? t('new', 'New') : t('changed', 'Changed')) })),
+      question: one
+        ? (one.request ? `${t('youAsked', 'You asked:')} ${one.request}` : (one.uncommitted ? t('uncommittedHint', 'Local changes, not committed yet') : ''))
+        : t('timelineHint', 'Changed cards laid out over time.'),
+      answer: (one ? one.summary : rows.map(({ task }) => `**${task.title}.** ${task.summary || ''}`).join('\n\n')) + releaseBit + commitBit,
+      layout: 'timeline',
+      stops: stopsFrom(rows),
+      items: boardItems(list),
     });
   }
 
-  const eventHtml = ({ t: task, i }) => {
-    const at = taskAt(task);
+  const stopRow = ({ task, i }) => {
     const n = itemsOf(i).length;
-    return `<div class="rw-ev${task.uncommitted ? ' rw-ev-wip' : ''}"><div class="rw-card">
-      <div class="rw-src">${h(sourceLabel(task))}</div>
-      <div class="rw-tt">${h(task.title)}</div>
-      ${at && !task.uncommitted ? `<div class="rw-date">${h(fmtDay(at))}${ago(at) ? ` · ${h(ago(at))}` : ''}</div>` : ''}
-      ${task.request ? `<div class="rw-q"><b>${h(t('youAsked', 'You asked:'))}</b> ${h(task.request)}</div>` : ''}
-      ${task.summary ? `<div class="rw-s">${h(task.summary)}</div>` : ''}
-      ${metaLine(task)}
-      <div class="rw-a"><button class="btn soft" data-rw="${i}">${SC.iconI('recent')}${h(t('showCards', 'Show'))} ${SC.plural(n, 'card')}</button></div>
-    </div></div>`;
+    return `<div class="rw-stop${task.uncommitted ? ' wip' : ''}">
+      <span class="rw-dot"></span>
+      <div>
+        <div class="rw-tt">${h(task.title)}</div>
+        <div class="rw-sub">${h(stopSubtitle(task))} · ${SC.plural(n, 'card')}</div>
+        ${task.summary ? `<div class="rw-s">${h(task.summary)}</div>` : ''}
+        <div class="rw-a"><button class="btn soft" data-rw="${i}">${SC.iconI('recent')}${h(t('showCards', 'Show'))}</button></div>
+      </div>
+    </div>`;
   };
-
-  const timelineHtml = () => `<div class="rw-tl">${ordered.map(eventHtml).join('')}</div>`;
-
-  function openTimeline() {
-    SC.showPanel(`<div class="sec">
-      <div class="ph"><span class="ico" style="--c:var(--recent)">${SC.icon('recent')}</span><span class="kindlabel">${h(t('recentWork', 'Recent work'))}</span></div>
-      <h2 class="pt">${h(t('timeline', 'Timeline'))}</h2>
-      <p class="pd">${h(t('timelineHint', 'Grouped changes over time. Open a stop to see the cards on the map.'))}</p>
-      ${R.updatedAt ? `<div class="rw-when">${h(t('updated', 'Updated'))} ${h(ago(R.updatedAt))}</div>` : ''}
-      ${timelineHtml()}
-      <div class="actions"><button class="btn soft" data-rw-back>${SC.iconI('left')}${h(t('back', 'Back'))}</button></div>
-    </div>`, (panel) => {
-      panel.querySelector('[data-rw-back]')?.addEventListener('click', () => SC.closePanel());
-      panel.querySelectorAll('[data-rw]').forEach((x) => x.addEventListener('click', () => showCards(+x.dataset.rw)));
-    });
-  }
 
   const btn = SC.addHeaderButton({
     id: 'btn-recent',
     label: t('recentWork', 'Recent work'),
     icon: 'recent',
-    title: t('timelineHint', 'Grouped changes over time'),
-    onClick: () => openTimeline(),
+    title: t('timelineHint', 'Changed cards laid out over time'),
+    onClick: () => showTimeline(),
   });
   const b = document.createElement('span');
   b.className = 'badge';
@@ -138,12 +134,13 @@
     top: true,
     html: `<div class="sec"><h3>${h(t('recentWork', 'Recent work'))} <span class="c">${items.length}</span></h3>
       ${R.updatedAt ? `<div class="rw-when">${h(t('updated', 'Updated'))} ${h(ago(R.updatedAt))}</div>` : ''}
-      ${timelineHtml()}
+      <p class="pd" style="margin-top:8px">${h(t('timelineHint', 'Changed cards laid out over time.'))}</p>
+      ${ordered.map(stopRow).join('')}
       <div class="rw-a" style="margin-top:12px"><button class="btn soft" data-rw-all>${SC.iconI('recent')}${h(t('openTimeline', 'Open timeline'))}</button></div>
     </div>`,
     bind: (el) => {
-      el.querySelectorAll('[data-rw]').forEach((x) => x.addEventListener('click', () => showCards(+x.dataset.rw)));
-      el.querySelector('[data-rw-all]')?.addEventListener('click', openTimeline);
+      el.querySelectorAll('[data-rw]').forEach((x) => x.addEventListener('click', () => showTimeline(+x.dataset.rw)));
+      el.querySelector('[data-rw-all]')?.addEventListener('click', () => showTimeline());
     },
   }));
 
@@ -158,9 +155,14 @@
     }).join('')}</div></div>` };
     return { top: true, html: `<div class="sec">${mine.map((it) => {
       const task = tasks[it.task] || {};
-      return `<div class="rw-note"><div class="rw-h">${it.change === 'new' ? h(t('new', 'New')) : h(t('changed', 'Changed'))} · ${h(task.title || t('recentWork', 'Recent work'))}</div>${h(it.note || '')}${task.request ? `<div class="rw-q" style="margin:6px 0 0"><b>${h(t('youAsked', 'You asked:'))}</b> ${h(task.request)}</div>` : ''}</div>`;
-    }).join('')}</div>` };
+      const tag = it.uncommitted || task.uncommitted
+        ? h(t('uncommitted', 'Uncommitted'))
+        : (it.change === 'new' ? h(t('new', 'New')) : h(t('changed', 'Changed')));
+      return `<div class="rw-note"><div class="rw-h">${tag} · ${h(task.title || t('recentWork', 'Recent work'))}</div>${h(it.note || '')}${task.request ? `<div class="rw-q" style="margin:6px 0 0"><b>${h(t('youAsked', 'You asked:'))}</b> ${h(task.request)}</div>` : ''}<div class="rw-a"><button class="btn soft" data-rw-one="${it.task}">${SC.iconI('recent')}${h(t('openTimeline', 'Open timeline'))}</button></div></div>`;
+    }).join('')}</div>`, bind: (el) => {
+      el.querySelectorAll('[data-rw-one]').forEach((x) => x.addEventListener('click', () => showTimeline(+x.dataset.rwOne)));
+    } };
   });
 
-  window.FloorplanRecent = { show: showCards, openTimeline, items, tasks };
+  window.FloorplanRecent = { show: showTimeline, openTimeline: () => showTimeline(), items, tasks };
 })();

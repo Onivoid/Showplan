@@ -1,6 +1,6 @@
 {
   "name": "showplan",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "See how your app actually fits together: an interactive map of your codebase where every part, file and web request has a plain-language name and description, with a health check, screens, guided flows, and highlights of what was just worked on. Cursor-first skill.",
   "author": {
     "name": "Onivoid",

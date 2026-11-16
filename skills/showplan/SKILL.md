@@ -151,7 +151,7 @@ The codebase root is the argument if one was given, otherwise the current direct
 
    Then rebuild. The build reports `DESCRIPTIONS files X/Y · routes X/Y`. Get both to 100%: re-run describe.mjs and it lists only what's still missing.
 
-7. **Mark recent work.** The map highlights what was just worked on: green tags on cards, and a **Recent work** timeline (grouped stops over time). Do this on every make and every update; it replaces the previous highlights.
+7. **Mark recent work.** The map highlights what was just worked on: green tags on cards, and a **Recent work** board that lays those cards out as a chronological timeline (grouped stops). Do this on every make and every update; it replaces the previous highlights.
    `node ${CLAUDE_SKILL_DIR}/scripts/recent.mjs <root>`
    It lists what changed since the previous map, uncommitted changes and recent commits (local git), each matched to the card it appears as. The *why* comes from you:
    - **What counts.** Work done in this conversation is the main source. If you did nothing here, use what recent.mjs shows in flight. If there's nothing, write `{ "tasks": [] }` so old highlights clear.

@@ -1,11 +1,12 @@
 # Changelog
 
+## 0.4.1 (2026-11-16)
+
+- **Recent work timeline (fix):** the timeline is the **map cards themselves**, laid out chronologically by stop on the board — not a panel changelog of task summaries.
+
 ## 0.4.0 (2026-11-16)
 
-- **Recent work timeline:** the personal map shows Recent work as a vertical timeline of grouped stops (conversation, releases, commit clusters), not one card per commit.
-- **Uncommitted WIP:** local working-tree changes are marked `"uncommitted": true` and labeled clearly on the timeline (Floorplan’s original “what’s in flight” use).
-- **Same sanitize as the rest of the map:** the personal Showplan keeps the full timeline (including commit SHAs). Audience export applies the same aggressiveness as paths/symbols — Public drops uncommitted stops and SHAs (unless `"openSource": true`); Team drops SHAs unless open-source; Serverless keeps everything.
-- **Commits with permission:** if there are no GitHub Releases, the agent asks before building a commits timeline, then groups coherent commits when possible.
+- **Recent work timeline:** grouped stops (conversation, releases, commit clusters), not one card per commit; uncommitted WIP labeled; personal map keeps full detail, audience export sanitizes like the rest of the map; commits-only history only with permission.
 
 ## 0.3.0 (2026-11-16)
 

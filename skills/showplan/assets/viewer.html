@@ -214,6 +214,14 @@ svg.lod-low .rw { font-size: 18px; padding: 6px 12px; }
 .anote { margin-top: 4px; display: flex; gap: 9px; align-items: flex-start; padding: 9px 11px; border-radius: 14px; background: rgba(var(--ink), .05); font-size: 12.5px; line-height: 1.45; color: var(--text); }
 .anote b { flex: none; width: 19px; height: 19px; border-radius: 999px; background: var(--on); color: var(--on-text); display: grid; place-items: center; font-size: 10.5px; font-weight: 700; }
 .anote span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+/* Recent work (and any answer) can lay its cards out as a chronological timeline instead of ELK layers */
+.tl-spine { fill: none; stroke: color-mix(in srgb, var(--recent) 40%, rgba(var(--ink), .14)); stroke-width: 2; stroke-linecap: round; }
+.tl-dot { fill: var(--recent); }
+.tl-dot.wip { fill: color-mix(in srgb, var(--recent) 55%, var(--text-3)); }
+.tl-stop { pointer-events: none; padding: 2px 0 0; font-family: Inter, system-ui, sans-serif; }
+.tl-stop .tl-t { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; letter-spacing: -.01em; }
+.tl-stop .tl-s { margin-top: 3px; font-size: 11.5px; color: var(--text-3); line-height: 1.35; }
+.tl-stop.wip .tl-t { color: color-mix(in srgb, var(--recent) 70%, var(--text)); }
 svg.lod-mid .desc { -webkit-line-clamp: 1 !important; max-height: 19px; }
 svg.lod-low .meta, svg.lod-low .anote { visibility: hidden; }
 /* far out, the big title and the footer pill are what's readable: drop the description so they fit */
@@ -1094,7 +1102,82 @@ function recentTip(id) {
 const measure = document.createElement('canvas').getContext('2d');
 const textW = (s, px = 12, w = 500) => { measure.font = `${w} ${px}px Inter, system-ui, sans-serif`; return measure.measureText(s).width; };
 
+/**
+ * Chronological board: cards sit in time stops (newest / uncommitted first), not in an ELK layer graph.
+ * Used by Recent work so the changed cards themselves read as a timeline.
+ */
+function layoutTimeline(view) {
+  const a = state.answer || {};
+  const vis = new Set(view.visible);
+  const stopsIn = Array.isArray(a.stops) && a.stops.length
+    ? a.stops
+    : [{ title: a.title || 'Recent work', subtitle: '', ids: view.visible }];
+  const PAD = 40, LABEL_W = 168, RAIL = 28, CARD_GAP = 20, STOP_GAP = 52, ROW_W = 920;
+  const children = [];
+  const timelineStops = [];
+  let y = PAD;
+  let maxR = PAD + LABEL_W;
+
+  for (const stop of stopsIn) {
+    const ids = (stop.ids || []).filter((id) => vis.has(id));
+    if (!ids.length) continue;
+    const sized = ids.map((id) => {
+      const [w, hh] = SIZES[info(id).type] || SIZES.file;
+      return { id, width: w, height: hh + cardExtraH(id) + (answerNote(id) ? NOTE_H : 0) };
+    });
+    let x = PAD + LABEL_W;
+    let rowY = y;
+    let rowH = 0;
+    const startY = y;
+    for (const c of sized) {
+      if (x > PAD + LABEL_W && x + c.width > PAD + LABEL_W + ROW_W) {
+        x = PAD + LABEL_W;
+        rowY += rowH + CARD_GAP;
+        rowH = 0;
+      }
+      children.push({ id: c.id, x, y: rowY, width: c.width, height: c.height });
+      x += c.width + CARD_GAP;
+      rowH = Math.max(rowH, c.height);
+      maxR = Math.max(maxR, x);
+    }
+    const endY = rowY + Math.max(rowH, 36);
+    timelineStops.push({
+      title: String(stop.title || ''),
+      subtitle: String(stop.subtitle || ''),
+      uncommitted: !!stop.uncommitted,
+      y: startY,
+      h: endY - startY,
+      cy: startY + (endY - startY) / 2,
+      rail: RAIL,
+    });
+    y = endY + STOP_GAP;
+  }
+  if (!children.length) {
+    // No stop matched visible ids — place every card in one anonymous row.
+    let x = PAD + LABEL_W, rowH = 0;
+    for (const id of view.visible) {
+      const [w, hh] = SIZES[info(id).type] || SIZES.file;
+      const height = hh + cardExtraH(id) + (answerNote(id) ? NOTE_H : 0);
+      if (x > PAD + LABEL_W && x + w > PAD + LABEL_W + ROW_W) { x = PAD + LABEL_W; y += rowH + CARD_GAP; rowH = 0; }
+      children.push({ id, x, y, width: w, height });
+      x += w + CARD_GAP; rowH = Math.max(rowH, height); maxR = Math.max(maxR, x);
+    }
+    y += Math.max(rowH, 36) + STOP_GAP;
+  }
+  return {
+    id: 'g',
+    width: Math.max(maxR + PAD, 640),
+    height: Math.max(y - STOP_GAP + PAD, 200),
+    children,
+    edges: [],
+    timeline: { stops: timelineStops, rail: RAIL },
+  };
+}
+
 async function layout(view) {
+  if (state.container === 'q:answer' && state.answer?.layout === 'timeline') {
+    return layoutTimeline(view);
+  }
   const deg = new Map();
   const bump = (id) => deg.set(id, (deg.get(id) || 0) + 1);
   for (const e of view.edges) { bump(e.a); bump(e.b); }
@@ -1160,6 +1243,19 @@ async function render(opts = {}) {
   if (opts.after) opts.after();
 }
 
+function drawTimelineChrome(g, res) {
+  const tl = res.timeline;
+  if (!tl?.stops?.length) return;
+  const x = tl.rail ?? 28;
+  const y0 = tl.stops[0].cy, y1 = tl.stops[tl.stops.length - 1].cy;
+  if (tl.stops.length > 1) el('path', { class: 'tl-spine', d: `M${x},${y0} L${x},${y1}` }, g);
+  for (const s of tl.stops) {
+    el('circle', { class: `tl-dot${s.uncommitted ? ' wip' : ''}`, cx: x, cy: s.cy, r: 5.5 }, g);
+    const fo = el('foreignObject', { x: x + 14, y: s.y - 2, width: 148, height: Math.max(s.h + 8, 44) }, g);
+    fo.innerHTML = `<div class="tl-stop${s.uncommitted ? ' wip' : ''}"><div class="tl-t">${h(s.title)}</div>${s.subtitle ? `<div class="tl-s">${h(s.subtitle)}</div>` : ''}</div>`;
+  }
+}
+
 function draw(view, res) {
   vp.innerHTML = '';
   state.bounds = { x: 0, y: 0, w: res.width, h: res.height };
@@ -1169,6 +1265,7 @@ function draw(view, res) {
   const gEdges = el('g', { class: 'edges' }, vp), gFx = el('g', {}, vp), gNodes = el('g', {}, vp), gPorts = el('g', { class: 'edges' }, vp);
   state.fxLayer = gFx;
   drawColumns(gCols, view, res);
+  drawTimelineChrome(gCols, res);
   state.edgeEls = new Map(); state.chipEls = new Map();
   for (const re of res.edges || []) {
     const e = edgeById.get(re.id), s = re.sections?.[0];
@@ -2455,9 +2552,25 @@ function showModal({ title = '', html = '', actions = [] } = {}) {
 }
 let toastTimer = null;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 2200); }
-function showBoard({ title, question = '', answer = '', items = [], steps = [], kind = '', icon: ic = '' }) {
+function showBoard({ title, question = '', answer = '', items = [], steps = [], kind = '', icon: ic = '', layout: lay = '', stops = null } = {}) {
   const clean = (arr) => (arr || []).map((x) => typeof x === 'string' ? { id: x, note: '' } : x).filter((x) => x && Q.exists(String(x.id))).map((x) => ({ id: String(x.id), note: String(x.note || '') }));
-  const a = { title: title || 'Board', question, answer, items: clean(items).slice(0, 24), steps: clean(steps), followups: [], ...(kind ? { kind } : {}), ...(ic ? { icon: ic } : {}) };
+  // Timeline boards can hold more cards (grouped by stop); other boards stay small.
+  const maxItems = lay === 'timeline' ? 48 : 24;
+  const cleanedItems = clean(items).slice(0, maxItems);
+  const cleanedStops = Array.isArray(stops)
+    ? stops.map((s) => ({
+        title: String(s?.title || ''),
+        subtitle: String(s?.subtitle || ''),
+        uncommitted: !!s?.uncommitted,
+        ids: (s?.ids || []).map(String).filter((id) => cleanedItems.some((it) => it.id === id)),
+      })).filter((s) => s.ids.length)
+    : null;
+  const a = {
+    title: title || 'Board', question, answer, items: cleanedItems, steps: clean(steps), followups: [],
+    ...(kind ? { kind } : {}), ...(ic ? { icon: ic } : {}),
+    ...(lay === 'timeline' ? { layout: 'timeline' } : {}),
+    ...(cleanedStops?.length ? { stops: cleanedStops } : {}),
+  };
   if (!a.items.length) { toast('Nothing on the map matches that.'); return; }
   state.answer = a; askState.last = a;
   go('q:answer', { force: true });
