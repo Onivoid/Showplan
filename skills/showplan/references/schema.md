@@ -146,7 +146,7 @@ Good candidates:
 
 `{ "tasks": [] }` clears all highlights.
 
-**Timeline.** The viewer opens a board where the **changed map cards** are laid out chronologically by stop (uncommitted first, then newest) — not a changelog list, and not one stop per commit.
+**Timeline.** The viewer opens a board where the **changed map cards** sit in horizontal columns by stop (left = uncommitted / newest). Not a changelog list, and not one stop per commit.
 
 **Sources.** Always grounded in the **local** git tree when history is used. Prefer **Releases** (`releases.mjs`) for historical notes. If there are no releases, ask the user before building a **commits** timeline, then **group coherent commits** into one task when you can (same feature / PR / theme). Mark working-tree-only work with `"uncommitted": true`. The personal Showplan keeps the full timeline; Public/Team exports sanitize Recent work like paths/symbols (drop uncommitted on Public; drop SHAs unless `"openSource": true`).
 

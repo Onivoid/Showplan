@@ -120,6 +120,32 @@ test('recent-work commits and release pass through the build', () => {
   } finally { cleanup(root); }
 });
 
+test('build strips em dashes from map prose (voice / humanizer safety net)', () => {
+  const root = shopApp();
+  try {
+    writeJson(path.join(root, 'floorplan', 'architecture.json'), {
+      ...readJson(path.join(root, 'floorplan', 'architecture.json')),
+      project: { name: 'Shop', summary: 'Sells gifts — and ships them.' },
+    });
+    writeJson(path.join(root, 'floorplan', 'recent-work.json'), {
+      tasks: [{
+        title: 'Ship',
+        request: '',
+        summary: 'Added tracking — with email.',
+        items: [{ ref: 'shop-api/server.js', change: 'changed', note: 'Sends the link – when ready.' }],
+      }],
+    });
+    run('scan.mjs', root);
+    run('build.mjs', root, '--no-claude-md');
+    const g = readJson(path.join(root, 'floorplan', 'graph.json'));
+    assert.ok(!/[—–]/.test(g.project.summary), g.project.summary);
+    assert.match(g.project.summary, /Sells gifts, and ships them\./);
+    assert.ok(!/[—–]/.test(g.recent.tasks[0].summary));
+    assert.ok(!/[—–]/.test(g.recent.items[0].note));
+    assert.match(g.recent.items[0].note, /Sends the link - when ready\./);
+  } finally { cleanup(root); }
+});
+
 test('personal recent keeps commits; public sanitize strips them and uncommitted', async () => {
   const { sanitizeForExport } = await lib('sanitize-export.mjs');
   const recent = {

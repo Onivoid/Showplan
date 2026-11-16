@@ -15,13 +15,13 @@ Use `"developers"` only when the user asks for it, or the map is plainly for an 
 
 ## Language
 
-Write **every** name and description in the map's language — the language the user is using in the chat, or the one they explicitly requested. Set `"language"` in `architecture.json` (e.g. `"fr"`, `"en"`, `"es"`) so refreshes stay consistent.
+Write **every** name and description in the map's language (the language the user is using in the chat, or the one they explicitly requested). Set `"language"` in `architecture.json` (e.g. `"fr"`, `"en"`, `"es"`) so refreshes stay consistent.
 
 - Translate the *content*: labels, summaries, file/route names and descriptions, tour and flow notes, recent-work notes.
 - Do not leave English placeholders when the map language is not English. Outside technical jargon and product names, avoid English words entirely.
 - Product and brand names stay as they are (Stripe, Shopify, Postgres).
 - Examples in this guide are in English for the skill author; they are not a template for the map's wording language.
-- Sound human: see [voice.md](voice.md). Prefer concrete verbs and specifics over hollow AI phrasing.
+- Sound human: see [voice.md](voice.md). Prefer concrete verbs and specifics over hollow AI phrasing. **No em dashes (—) or en dashes (–)** in any description you write.
 
 ## Where they go
 

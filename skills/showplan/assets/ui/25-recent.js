@@ -76,9 +76,16 @@
       + (it.uncommitted || tasks[it.task]?.uncommitted ? ` · ${t('uncommitted', 'Uncommitted')}` : ''),
   }));
 
+  const stopKind = (task) => {
+    if (task.uncommitted) return t('uncommitted', 'Uncommitted');
+    if (task.release || task.mode === 'releases') return t('release', 'Release');
+    if (task.mode === 'commits') return t('fromCommits', 'From commits');
+    return t('fromRecent', 'Recent');
+  };
   const stopsFrom = (rows) => rows.map(({ task, i }) => ({
     title: task.title,
     subtitle: stopSubtitle(task),
+    kind: stopKind(task),
     uncommitted: !!task.uncommitted,
     ids: itemsOf(i).map((it) => it.id),
   }));

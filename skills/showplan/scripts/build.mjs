@@ -98,10 +98,23 @@ if (!isObj(arch)) await fail('architecture.json must be an object');
 // other files below, and the comments the scan picked up. The map gets the masked text, the files on disk stay
 // as they are, and a warning names the file and field (never the value) so whoever wrote it can take it out.
 const hiddenSecrets = [];
+/** Soften AI voice tells that slip into map prose: em/en dashes become ordinary punctuation. Files on disk stay as written; only the map copy changes. */
+const scrubVoice = (text) => {
+  if (typeof text !== 'string' || !text) return text;
+  return text
+    .replace(/\s*—\s*/g, ', ')
+    .replace(/–/g, '-')
+    .replace(/,\s*,+/g, ',')
+    .replace(/\s+,/g, ',')
+    .replace(/,\s*\./g, '.')
+    .replace(/,\s*$/g, '')
+    .replace(/^\s*,\s*/g, '');
+};
 const scrub = (text, file, field) => {
   if (typeof text !== 'string' || !text) return text;
-  const out = maskSecrets(text);
+  let out = maskSecrets(text);
   if (out !== text) hiddenSecrets.push({ file, field });
+  out = scrubVoice(out);
   return out;
 };
 /** Masks the string (or list-of-strings) fields `keys` of obj in place. */

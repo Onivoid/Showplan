@@ -42,7 +42,7 @@ Must be in that language:
 
 Detect the language from the conversation. If they ask for a specific language ("en français", "in English", `language: es`), use that. Set `"language"` in `architecture.json` to a short tag (`fr`, `en`, `es`, …) so later refreshes stay consistent. Product names (Stripe, Postgres, …) stay as-is. Reference examples in this skill may be English; translate the *content you write*, don't copy the example language.
 
-**Voice.** Write like a clear human, not a chatbot. Short concrete sentences; lead with what the thing does; avoid filler, inflated claims, and stock AI phrasing. See [references/writing-descriptions.md](references/writing-descriptions.md) and [references/voice.md](references/voice.md).
+**Voice (humanizer gate).** Every map string you write must pass [references/voice.md](references/voice.md): short concrete sentences, no filler, no inflated claims, **no em dashes (—) or en dashes (–)** in labels, summaries, descriptions, tour, flows, recent-work, Ask answers, or sanitize overlays. Prefer comma, period, or colon. See also [references/writing-descriptions.md](references/writing-descriptions.md). The build strips leftover dashes from map prose as a safety net; still write clean copy yourself.
 
 ## Skill folder (Cursor-first)
 

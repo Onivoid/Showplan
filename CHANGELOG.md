@@ -1,8 +1,13 @@
 # Changelog
 
+## 0.4.2 (2026-11-16)
+
+- **Recent work timeline UX:** horizontal columns (left = newest / uncommitted), larger stop banners with clear labels, panel outline for the timeline, and reduced-motion respect.
+- **Voice / humanizer gate:** map prose must avoid em/en dashes; `voice.md` and the skill spell this out, and `build.mjs` rewrites leftover `—` / `–` in map copy as a safety net.
+
 ## 0.4.1 (2026-11-16)
 
-- **Recent work timeline (fix):** the timeline is the **map cards themselves**, laid out chronologically by stop on the board — not a panel changelog of task summaries.
+- **Recent work timeline (fix):** the timeline is the **map cards themselves**, laid out chronologically by stop on the board, not a panel changelog of task summaries.
 
 ## 0.4.0 (2026-11-16)
 
