@@ -71,7 +71,7 @@ Generating the map does not depend on the bar. **Change** on a blueprint is not 
 
 ## A note for later chats
 
-Cursor has no personal, uncommitted file like Claude Code's `CLAUDE.local.md`, and `AGENTS.md` is shared with your team, so Showplan does not write either. After the first map it can offer a personal rule at `.cursor/rules/floorplan.mdc` that tells later chats to look the map up first. It is added only if you say yes, and the file is listed in `.git/info/exclude` so it is not committed. Delete the file, or put `<!-- floorplan:off -->` in it, to stop updates.
+Cursor has no personal, uncommitted file like Claude Code's `CLAUDE.local.md`, and `AGENTS.md` is shared with your team, so Showplan does not write either. After the first map it can offer a personal rule at `.cursor/rules/showplan.mdc` that tells later chats to look the map up first. It is added only if you say yes, and the file is listed in `.git/info/exclude` so it is not committed. Delete the file, or put `<!-- showplan:off -->` in it, to stop updates.
 
 ## Audience exports
 

@@ -2327,12 +2327,11 @@ if (EXPORTED) {
   const made = document.createElement('a');
   made.id = 'madewith'; made.className = 'glass';
   made.href = 'https://github.com/Onivoid/Showplan'; made.target = '_blank'; made.rel = 'noopener';
-  made.title = 'Showplan is based on Floorplan by Hayden Smith';
+  made.title = 'Showplan — based on Floorplan by Hayden Smith';
   const logo = $('.brand .mark').cloneNode();
   logo.alt = '';
   const name = document.createElement('b'); name.textContent = 'Showplan';
-  const free = document.createElement('span'); free.className = 'x'; free.textContent = '· based on Floorplan';
-  made.append('Made with', logo, name, free);
+  made.append('Made with', logo, name);
   $('#stage').appendChild(made);
 }
 document.title = revealHidden(`${G.project.name} map`);

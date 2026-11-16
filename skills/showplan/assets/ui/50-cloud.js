@@ -8,7 +8,7 @@
   if (!SC || !S) return;
   const { h } = SC;
   const AFTER = 120; // seconds of the map being on screen
-  const PRIVACY = 'https://github.com/haydenschmitty/floorplan/blob/main/docs/privacy-and-security.md#floorplan-cloud-waitlist';
+  const PRIVACY = 'https://github.com/Onivoid/Showplan/blob/main/docs/privacy-and-security.md#showplan-cloud-waitlist';
   const api = (p, body) => fetch('/api/cloud/' + p, { method: body ? 'POST' : 'GET', headers: { 'content-type': 'application/json', 'x-floorplan-token': S.token }, ...(body ? { body: JSON.stringify(body) } : {}) }).then((r) => r.json());
 
   const style = document.createElement('style');

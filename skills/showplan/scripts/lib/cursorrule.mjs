@@ -1,18 +1,21 @@
 // Keeps a personal Cursor rule pointing later chats in this project at the map, so "where is X / how does Y
 // work" starts from the map instead of a fresh search of the code. The rule is one file,
-// .cursor/rules/floorplan.mdc, loaded by Cursor like any other project rule. It is not committed: the path
+// .cursor/rules/showplan.mdc, loaded by Cursor like any other project rule. It is not committed: the path
 // is added to the clone's local ignore list (.git/info/exclude), which leaves tracked files untouched.
 // AGENTS.md is shared with the team, so this never writes that. The block sits between markers and is
 // rewritten in place; anything else in the file is left alone. It's added only when the user asks
-// (build.mjs --cursor-rules); a file that's already there is kept current. Put <!-- floorplan:off --> in
-// the file to opt out.
+// (build.mjs --cursor-rules); a file that's already there is kept current. Put <!-- showplan:off --> in
+// the file to opt out (<!-- floorplan:off --> still works for older rules).
 import fs from 'node:fs';
 import path from 'node:path';
 import { ignoreUncommitted } from './claudemd.mjs';
 
-const START = '<!-- floorplan:start -->';
-const END = '<!-- floorplan:end -->';
-const REL = '.cursor/rules/floorplan.mdc';
+const START = '<!-- showplan:start -->';
+const END = '<!-- showplan:end -->';
+const LEGACY_START = '<!-- floorplan:start -->';
+const LEGACY_END = '<!-- floorplan:end -->';
+const REL = '.cursor/rules/showplan.mdc';
+const LEGACY_REL = '.cursor/rules/floorplan.mdc';
 
 function block(mapRel) {
   return `${START}
@@ -37,28 +40,41 @@ alwaysApply: true
 
 const read = (f) => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : null);
 
+function replaceMarkedBlock(old, text) {
+  for (const [aMark, bMark] of [[START, END], [LEGACY_START, LEGACY_END]]) {
+    const a = old.indexOf(aMark), b = old.indexOf(bMark);
+    if (a >= 0 && b > a) return old.slice(0, a) + text + old.slice(b + bMark.length);
+  }
+  return null;
+}
+
 /** Refreshes the Cursor rule, or adds it when `add` (the user asked for it). */
 export function writeCursorRule(root, outDir, { add = false } = {}) {
   const mapRel = path.relative(root, outDir).replace(/\\/g, '/');
   if (!mapRel || mapRel.startsWith('..') || path.isAbsolute(mapRel)) return 'skipped (map is outside the codebase)';
   const file = path.join(root, REL);
-  const old = read(file);
+  const legacy = path.join(root, LEGACY_REL);
+  const fromLegacyOnly = !fs.existsSync(file) && fs.existsSync(legacy);
+  const old = read(file) ?? (fromLegacyOnly ? read(legacy) : null);
   if (!add && old == null) return 'not added (offer it to the user; add it with --cursor-rules)';
-  if (old?.includes('<!-- floorplan:off -->')) return 'skipped (opted out)';
+  if (old?.includes('<!-- showplan:off -->') || old?.includes('<!-- floorplan:off -->')) return 'skipped (opted out)';
   const eol = old?.includes('\r\n') ? '\r\n' : '\n';
-  const body = block(mapRel);
-  const text = body.replace(/\n/g, eol);
+  const text = block(mapRel).replace(/\n/g, eol);
   let next;
-  if (old == null) next = (FRONT + '\n' + body + '\n').replace(/\n/g, eol);
+  if (old == null) next = (FRONT + '\n' + block(mapRel) + '\n').replace(/\n/g, eol);
   else {
-    const a = old.indexOf(START), b = old.indexOf(END);
-    next = a >= 0 && b > a ? old.slice(0, a) + text + old.slice(b + END.length) : old.replace(/\s*$/, '') + eol + eol + text + eol;
+    const replaced = replaceMarkedBlock(old, text);
+    next = replaced != null ? replaced : old.replace(/\s*$/, '') + eol + eol + text + eol;
   }
   const notes = [];
-  if (next !== old) {
+  const existed = fs.existsSync(file);
+  if (next !== old || !existed || fromLegacyOnly) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, next);
-    notes.push(`${old == null ? 'created' : 'updated'} ${REL}`);
+    notes.push(`${!existed ? 'created' : 'updated'} ${REL}`);
+    if (fromLegacyOnly || (fs.existsSync(legacy) && path.resolve(legacy) !== path.resolve(file))) {
+      try { fs.rmSync(legacy); notes.push(`removed legacy ${LEGACY_REL}`); } catch { /* ignore */ }
+    }
   } else notes.push(`${REL} unchanged`);
   notes.push(ignoreUncommitted(root, REL, 'personal Cursor rule (added by Showplan)'));
   return notes.join('; ');

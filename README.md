@@ -15,7 +15,7 @@ Your coding agent (Cursor, Claude Code or Codex) reads your codebase and draws a
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-D97757?style=flat-square)](https://code.claude.com/docs/en/overview)
 [![Codex plugin](https://img.shields.io/badge/Codex-plugin-111?style=flat-square)](docs/codex.md)
 [![Tests](https://img.shields.io/github/actions/workflow/status/Onivoid/Showplan/test.yml?branch=main&style=flat-square&label=tests)](https://github.com/Onivoid/Showplan/actions/workflows/test.yml)
-[![Version](https://img.shields.io/badge/version-0.2.0-111?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.0-111?style=flat-square)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-111?style=flat-square)](LICENSE)
 [![Node 18+](https://img.shields.io/badge/node-%E2%89%A518-111?style=flat-square)](https://nodejs.org)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-0-111?style=flat-square)](#how-it-works)
@@ -304,7 +304,7 @@ Showplan has no hooks, no MCP servers and no dependencies, downloads nothing, an
 <details>
 <summary><b>Does my code leave my computer?</b></summary>
 
-Only the way Claude Code and Codex always work: the AI reads the files it needs to describe your app, through your own account. The map itself is a local file and its server only listens on your machine. If you choose to open the map in the Claude app instead, Claude uploads the map (names, descriptions and structure, not your source code) to your private claude.ai account, and asks first. The one thing Showplan itself ever sends is your email, and only if you sign up for the [Showplan Cloud waitlist](docs/privacy-and-security.md#floorplan-cloud-waitlist).
+Only the way Claude Code and Codex always work: the AI reads the files it needs to describe your app, through your own account. The map itself is a local file and its server only listens on your machine. If you choose to open the map in the Claude app instead, Claude uploads the map (names, descriptions and structure, not your source code) to your private claude.ai account, and asks first. The one thing Showplan itself ever sends is your email, and only if you sign up for the [Showplan Cloud waitlist](docs/privacy-and-security.md#showplan-cloud-waitlist).
 </details>
 
 <details>

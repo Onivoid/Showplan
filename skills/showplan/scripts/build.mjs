@@ -13,6 +13,8 @@ import { fileURLToPath } from 'node:url';
 import { compileGlob, globProblem, parseArgs, fmtNum, mapDir, keepOutOfGit, toPosix, unattendedMode, printJson, readJsonFile, notMapped } from './lib/common.mjs';
 import { fallbackFileName, fallbackRouteName, routeKey, jargonIn } from './lib/names.mjs';
 import { buildHealth, withDismissed, dismissalFor, maskSecrets } from './lib/health.mjs';
+import { applyHealthLocale } from './lib/health-i18n.mjs';
+import { uiCatalog, mergeLocaleOverlay, hasBuiltInLocale } from './lib/locale.mjs';
 import { scriptJson, scriptCode, withPolicy, editorTemplate } from '../assets/page-safety.mjs';
 import { buildPlanHealth } from './lib/blueprint.mjs';
 import { buildScreens } from './lib/screens.mjs';
@@ -636,6 +638,23 @@ if (graph.health?.issues && fs.existsSync(dismissedFile)) {
     graph.health = withDismissed(graph.health, list);
     for (const w of secretWarnings()) { warn(w); report.push(`! ${w}`); } } catch (e) { warn(`health-dismissed.json is not valid JSON: ${e.message}`); }
 }
+// Health titles/details/fix + UI chrome follow architecture.json "language" (en default; fr built-in; else locale.json)
+{
+  const localeFile = path.join(outDir, 'locale.json');
+  let localeOverlay = null;
+  if (fs.existsSync(localeFile)) {
+    try { localeOverlay = readJsonFile(localeFile); }
+    catch (e) { warn(`locale.json is not valid JSON: ${e.message}`); }
+  }
+  const lang = language || 'en';
+  if (graph.health?.issues) {
+    graph.health = applyHealthLocale(graph.health, lang, localeOverlay?.health || null);
+  }
+  graph.meta.ui = mergeLocaleOverlay(uiCatalog(lang), localeOverlay);
+  if (language && !hasBuiltInLocale(lang) && !localeOverlay?.health) {
+    warn(`language "${language}": Health text stays English until floorplan/locale.json provides a "health" overlay (or use "fr" / "en"). See references/export.md and SKILL.md Language.`);
+  }
+}
 fs.mkdirSync(outDir, { recursive: true });
 const trackedWarning = keepOutOfGit(outDir);
 fs.writeFileSync(path.join(outDir, 'graph.json'), JSON.stringify(graph, null, 0));
@@ -715,7 +734,7 @@ report.push(graph.recent
   ? `RECENT WORK  ${graph.recent.items.length} card(s) highlighted across ${graph.recent.tasks.length} task(s)`
   : `RECENT WORK  none highlighted${fs.existsSync(recentFile) ? '' : ' (no recent-work.json)'}`);
 // point future sessions in this project at the map. Claude Code can keep a block in CLAUDE.local.md.
-// Cursor can keep a personal rule in .cursor/rules/floorplan.mdc. Codex has no personal, uncommitted
+// Cursor can keep a personal rule in .cursor/rules/showplan.mdc. Codex has no personal, uncommitted
 // equivalent (AGENTS.md is shared with the team), so a map built by Codex leaves the project's notes alone,
 // and so does a map made without an agent session. Unattended mode never writes outside the map folder.
 if (agent === 'codex') report.push('AGENT  Codex: questions on the map run through Codex');

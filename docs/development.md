@@ -210,8 +210,8 @@ An engine must be read-only in a way its CLI enforces, not only because the prom
    ```bash
    claude plugin tag . -m "Showplan %s" --push
    ```
-7. On GitHub, publish a release from the tag (`floorplan--vX.Y.Z`), titled `Showplan X.Y.Z`, with that version's changelog section as its notes.
-8. Reply on every issue and pull request the release fixes: what changed, the version, and how to get it (`claude plugin update showplan@showplan`).
+7. On GitHub, publish a release from the tag (`X.Y.Z`), titled `Showplan X.Y.Z`, with that version's changelog section as its notes.
+8. Reply on every issue and pull request the release fixes: what changed, the version, and how to get it (`claude plugin update showplan@showplan` or `npx skills update showplan`).
 
 ### Issues and pull requests
 

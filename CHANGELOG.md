@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 (2026-11-16)
+
+- **Branding:** new Showplan “S” mark across the map, favicon, plugin icons and README. Visible product links and the Cursor rule path (`.cursor/rules/showplan.mdc`) say Showplan; the map folder stays `floorplan/` for compatibility.
+- **Health in your language:** with `"language": "fr"`, Health titles, details, fix prompts and “what was checked” are French, and the Health panel chrome follows `meta.ui`. Other languages can supply `floorplan/locale.json`.
+- **Voice:** map-writing guidance pushes concrete, human copy ([references/voice.md](skills/showplan/references/voice.md)).
+
 ## 0.2.0 (2026-11-16)
 
 - **Audience exports:** share a sanitized static HTML map without touching your personal `floorplan/index.html`. Presets: **Public** (most sanitized), **Team**, **Serverless / Local**, plus a **custom** audience described in free text.

@@ -88,7 +88,7 @@ test('the copy for the Claude app always says Claude, whoever built the map', ()
 
 test('a map built under Cursor records it, leaves Claude and Codex notes alone, and adds a rule only when asked', () => {
   const root = shopApp();
-  const rule = path.join(root, '.cursor', 'rules', 'floorplan.mdc');
+  const rule = path.join(root, '.cursor', 'rules', 'showplan.mdc');
   try {
     execFileSync('git', ['init', '-q', root]);
     run('scan.mjs', root);
@@ -100,22 +100,22 @@ test('a map built under Cursor records it, leaves Claude and Codex notes alone, 
     assert.ok(!fs.existsSync(path.join(root, 'AGENTS.md')), 'no AGENTS.md');
     assert.ok(!fs.existsSync(rule), 'no Cursor rule until the user says yes');
     const added = run('build.mjs', root, '--agent', 'cursor', '--cursor-rules');
-    assert.match(added, /CURSOR RULE {2}created \.cursor\/rules\/floorplan\.mdc/);
+    assert.match(added, /CURSOR RULE {2}created \.cursor\/rules\/showplan\.mdc/);
     assert.match(added, /ignored locally via \.git\/info\/exclude/);
     const text = fs.readFileSync(rule, 'utf8');
     assert.match(text, /alwaysApply: true/);
     assert.match(text, /floorplan\/query\.mjs/);
     const exclude = execFileSync('git', ['-C', root, 'rev-parse', '--git-path', 'info/exclude'], { encoding: 'utf8' }).trim();
-    assert.match(fs.readFileSync(path.resolve(root, exclude), 'utf8'), /\/\.cursor\/rules\/floorplan\.mdc/);
-    fs.writeFileSync(rule, 'my notes\n\n<!-- floorplan:start -->\nold\n<!-- floorplan:end -->\n');
+    assert.match(fs.readFileSync(path.resolve(root, exclude), 'utf8'), /\/\.cursor\/rules\/showplan\.mdc/);
+    fs.writeFileSync(rule, 'my notes\n\n<!-- showplan:start -->\nold\n<!-- showplan:end -->\n');
     run('build.mjs', root, '--agent', 'cursor');
     const kept = fs.readFileSync(rule, 'utf8');
     assert.match(kept, /^my notes/);
     assert.match(kept, /floorplan\/query\.mjs/);
     assert.doesNotMatch(kept, /\nold\n/);
-    fs.writeFileSync(rule, 'my notes\n<!-- floorplan:off -->\n');
+    fs.writeFileSync(rule, 'my notes\n<!-- showplan:off -->\n');
     assert.match(run('build.mjs', root, '--agent', 'cursor', '--cursor-rules'), /CURSOR RULE {2}skipped \(opted out\)/);
-    assert.equal(fs.readFileSync(rule, 'utf8'), 'my notes\n<!-- floorplan:off -->\n');
+    assert.equal(fs.readFileSync(rule, 'utf8'), 'my notes\n<!-- showplan:off -->\n');
   } finally { cleanup(root); }
 });
 

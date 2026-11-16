@@ -7,13 +7,15 @@
   // an exported copy without Health leaves the button out: an empty list would read as "all clear"
   if (!SC || (SC.exported && !SC.graph.health)) return;
   const { h } = SC;
+  const UI = SC.graph.meta?.ui || {};
+  const t = (k, fallback) => (typeof UI[k] === 'string' && UI[k]) || fallback;
   const A = SC.agent || { name: 'Claude', app: 'Claude Code' };
   const issues = (SC.graph.health && SC.graph.health.issues) || [];
   // a blueprint (planned, not built) gets a design review of the plan instead of a code check
   const PLAN = !!SC.graph.meta.blueprint;
-  const FIX = PLAN ? 'Resolve' : 'Fix';
-  const CHECK = PLAN ? 'design review' : 'health check';
-  const ISSUES_URL = 'https://github.com/haydenschmitty/floorplan/issues/new';
+  const FIX = PLAN ? t('resolveWith', 'Resolve with') : t('fixWith', 'Fix with');
+  const CHECK = PLAN ? t('designReview', 'design review').toLowerCase() : t('healthCheck', 'health check').toLowerCase();
+  const ISSUES_URL = 'https://github.com/Onivoid/Showplan/issues/new';
 
   // ---------- "not a problem" ----------
   // Saved by serve.mjs to floorplan/health-dismissed.json (build folds it into graph.health.dismissed);
@@ -59,9 +61,9 @@
   }
 
   const SEV = {
-    high: { color: 'var(--sev-high)', group: 'Fix these first', word: 'important' },
-    medium: { color: 'var(--sev-medium)', group: 'Worth fixing soon', word: 'worth fixing' },
-    low: { color: 'var(--sev-low)', group: 'Good to tidy up', word: 'minor' },
+    high: { color: 'var(--sev-high)', group: t('fixTheseFirst', 'Fix these first'), word: t('important', 'important') },
+    medium: { color: 'var(--sev-medium)', group: t('worthFixingSoon', 'Worth fixing soon'), word: t('worthFixing', 'worth fixing') },
+    low: { color: 'var(--sev-low)', group: t('goodToTidy', 'Good to tidy up'), word: t('minor', 'minor') },
   };
   const ORDER = ['high', 'medium', 'low'];
   const active = () => issues.filter((i) => !dismissalOf(i));
@@ -126,9 +128,9 @@
   }
   function fixWith(issue) {
     SC.modal({
-      title: `${FIX} with ${A.name}`,
-      html: `<p class="hc-hint">Copy this request and paste it into <b>${A.app}</b>, opened in your project folder. It explains what to change and asks before anything risky.</p><pre>${h(issue.fix)}</pre>`,
-      actions: [{ label: 'Copy prompt', primary: true, icon: 'copy', onClick: () => { SC.copy(issue.fix).then((ok) => { if (ok) SC.toast(`Copied. Paste it into ${A.app}.`); }); } }],
+      title: `${FIX} ${A.name}`,
+      html: `<p class="hc-hint">${h(t('copyPasteHint', 'Copy this request and paste it into {app}, opened in your project folder. It explains what to change and asks before anything risky.').replace('{app}', A.app))}</p><pre>${h(issue.fix)}</pre>`,
+      actions: [{ label: t('copyPrompt', 'Copy prompt'), primary: true, icon: 'copy', onClick: () => { SC.copy(issue.fix).then((ok) => { if (ok) SC.toast(`Copied. Paste it into ${A.app}.`); }); } }],
     });
   }
   // The report is a GitHub issue the person reads and sends themselves: which check fired, its title (which
@@ -143,12 +145,12 @@
   ].join('\n');
   function notAProblem(issue) {
     const m = SC.modal({
-      title: 'Not a problem?',
+      title: t('notAProblemQ', 'Not a problem?'),
       html: `<p class="hc-hint">Mark “${h(issue.title)}” as a false alarm and it moves to the bottom of the ${CHECK}, out of the count. It comes back if this check finds something new there.</p>
-        <textarea class="hc-why" placeholder="Why not? (optional) e.g. that value is a bcrypt hash, not the password" spellcheck="true"></textarea>
+        <textarea class="hc-why" placeholder="Why not? (optional)" spellcheck="true"></textarea>
         <label class="hc-rep"><input type="checkbox" class="hc-rep-on"><span>Also tell the Showplan developer, so the check gets better. This opens a GitHub issue you can read and edit before sending. It includes only what’s shown below, never your code or any values.</span></label>
         <pre class="hc-prev"></pre>`,
-      actions: [{ label: 'Mark as not a problem', primary: true, icon: 'check', keepOpen: true, onClick: async (close) => {
+      actions: [{ label: t('markNotAProblem', 'Mark as not a problem'), primary: true, icon: 'check', keepOpen: true, onClick: async (close) => {
         const reason = m.el.querySelector('.hc-why').value.trim();
         const report = m.el.querySelector('.hc-rep-on').checked;
         const url = `${ISSUES_URL}?title=${encodeURIComponent(`False positive: ${issue.kind}`)}&body=${encodeURIComponent(reportText(issue, reason))}`;
@@ -183,16 +185,16 @@
     if (d) return `<div class="hc-issue off">
         <div class="hc-t"><span class="dot" style="background:rgba(var(--ink),.2)"></span><span>${h(issue.title)}</span></div>
         <div class="hc-n">Marked as not a problem${d.reason ? `: ${h(d.reason)}` : ''}</div>
-        ${canDismiss ? `<div class="hc-a"><button class="btn soft" data-hc-undo="${idx}">Show again</button></div>` : ''}
+        ${canDismiss ? `<div class="hc-a"><button class="btn soft" data-hc-undo="${idx}">${h(t('showAgain', 'Show again'))}</button></div>` : ''}
       </div>`;
     return `<div class="hc-issue">
       <div class="hc-t"><span class="dot" style="background:${SEV[issue.severity].color}"></span><span>${h(issue.title)}</span></div>
       ${note ? `<div class="hc-n">${h(note)}</div>` : `<div class="hc-d">${h(issue.detail)}</div>`}
       ${locText(issue)}
       <div class="hc-a">
-        ${onMap(issue) ? `<button class="btn soft" data-hc-show="${idx}">${SC.iconI('search')}Show on map</button>` : ''}
-        ${SC.exported ? '' : here(issue) ? `<button class="btn soft" data-hc-here="${idx}">${SC.iconI('spark')}Resolve on the map</button>` : `<button class="btn soft" data-hc-fix="${idx}">${SC.iconI('spark')}${FIX} with ${A.name}</button>`}
-        ${canDismiss ? `<button class="btn soft" data-hc-dismiss="${idx}">${SC.iconI('check')}Not a problem</button>` : ''}
+        ${onMap(issue) ? `<button class="btn soft" data-hc-show="${idx}">${SC.iconI('search')}${h(t('showOnMap', 'Show on map'))}</button>` : ''}
+        ${SC.exported ? '' : here(issue) ? `<button class="btn soft" data-hc-here="${idx}">${SC.iconI('spark')}${h(t('resolveOnMap', 'Resolve on the map'))}</button>` : `<button class="btn soft" data-hc-fix="${idx}">${SC.iconI('spark')}${h(FIX)} ${h(A.name)}</button>`}
+        ${canDismiss ? `<button class="btn soft" data-hc-dismiss="${idx}">${SC.iconI('check')}${h(t('notAProblem', 'Not a problem'))}</button>` : ''}
       </div>
     </div>`;
   };
@@ -200,7 +202,14 @@
     const on = (attr, fn) => el.querySelectorAll(`[data-hc-${attr}]`).forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); fn(issues[+b.getAttribute(`data-hc-${attr}`)]); }));
     on('show', showOnMap); on('fix', fixWith); on('here', resolveHere); on('dismiss', notAProblem); on('undo', undoDismissal);
   };
-  const headline = () => urgent() ? `${SC.plural(urgent(), 'thing')} need${urgent() === 1 ? 's' : ''} attention` : active().length ? 'Nothing urgent' : 'No problems found';
+  const headline = () => {
+    if (urgent()) {
+      const n = urgent();
+      const key = n === 1 ? 'thingsNeedAttention' : 'thingsNeedAttentionPlural';
+      return t(key, n === 1 ? '{n} thing needs attention' : '{n} things need attention').replace('{n}', String(n));
+    }
+    return active().length ? t('nothingUrgent', 'Nothing urgent') : t('noProblems', 'No problems found');
+  };
   const breakdown = () => `<div class="hc-sub">${ORDER.filter(count).map((s) => `<span><i class="dot" style="background:${SEV[s].color}"></i>${count(s)} ${SEV[s].word}</span>`).join('')}</div>`;
   const headColor = () => urgent() ? SEV[count('high') ? 'high' : 'medium'].color : 'var(--ok)';
 
@@ -209,7 +218,7 @@
   // "all clear" when a check never ran. `loud` lines are gaps that matter (a server, but no endpoints found).
   const checked = Array.isArray(SC.graph.health && SC.graph.health.checked) ? SC.graph.health.checked.filter((c) => c && typeof c.label === 'string' && typeof c.text === 'string') : [];
   const gaps = checked.filter((c) => c.loud);
-  const checkedHtml = () => !checked.length ? '' : `<div class="sec"><h3>What was checked</h3><div class="hc-chk">${checked.map((c) =>
+  const checkedHtml = () => !checked.length ? '' : `<div class="sec"><h3>${h(t('whatWasChecked', 'What was checked'))}</h3><div class="hc-chk">${checked.map((c) =>
     `<div class="k${c.loud ? ' loud' : ''}"><span class="dot" style="background:${c.loud ? 'var(--sev-medium)' : c.checked ? 'var(--ok)' : 'rgba(var(--ink),.22)'}"></span><span><b>${h(c.label)}:</b> ${h(c.text)}</span></div>`).join('')}</div></div>`;
   // app-wide checks that alone clear some endpoints: named, so a clean result shows what it rests on
   const appWide = (!PLAN && SC.graph.health && SC.graph.health.appWide) || [];
@@ -218,12 +227,12 @@
   function listHtml() {
     const live = active(), off = issues.filter(dismissalOf);
     const top = `<div class="sec">
-        <div class="ph"><span class="ico" style="--c:${headColor()}">${SC.icon('health')}</span><span class="kindlabel">${PLAN ? 'Design review' : 'Health check'}</span></div>
+        <div class="ph"><span class="ico" style="--c:${headColor()}">${SC.icon('health')}</span><span class="kindlabel">${h(PLAN ? t('designReview', 'Design review') : t('healthCheck', 'Health check'))}</span></div>
         <h2 class="pt">${h(headline())}</h2>
-        <p class="pd">${PLAN ? 'We checked the plan for parts anyone on the internet could use, decisions the PRD leaves open, and pieces nothing connects to. Settling these now is cheaper than after it’s built.' : 'We looked for keys left in the code or sent to the browser, data and parts of your app anyone on the internet can reach (Supabase tables, Firebase rules, Stripe webhooks, endpoints), leftover files and files too big to edit safely. It’s a quick check, not a security audit.'}</p>
+        <p class="pd">${h(PLAN ? t('quickCheckPlan', 'We checked the plan for parts anyone on the internet could use, decisions the PRD leaves open, and pieces nothing connects to. Settling these now is cheaper than after it’s built.') : t('quickCheckHealth', 'We looked for keys left in the code or sent to the browser, data and parts of your app anyone on the internet can reach (Supabase tables, Firebase rules, Stripe webhooks, endpoints), leftover files and files too big to edit safely. It’s a quick check, not a security audit.'))}</p>
         ${appWideHtml()}
-        ${live.length ? breakdown() : `<div class="hc-calm">${off.length ? `Nothing left to look at: you marked ${SC.plural(off.length, 'item')} as not a problem.` : `Nothing stood out${gaps.length ? `, but ${gaps.length === 1 ? 'one check' : `${gaps.length} checks`} had nothing to look at (below)` : ''}.`} This is a quick automatic check, not a full ${PLAN ? 'design' : 'security'} review.</div>`}
-        <div class="actions"><button class="btn soft" data-hc-back>${SC.iconI('left')}Back</button></div>
+        ${live.length ? breakdown() : `<div class="hc-calm">${off.length ? `${h(t('nothingLeft', 'Nothing left to look at'))}: you marked ${SC.plural(off.length, 'item')} as not a problem.` : `Nothing stood out${gaps.length ? `, but ${gaps.length === 1 ? 'one check' : `${gaps.length} checks`} had nothing to look at (below)` : ''}.`} This is a quick automatic check, not a full ${PLAN ? 'design' : 'security'} review.</div>`}
+        <div class="actions"><button class="btn soft" data-hc-back>${SC.iconI('left')}${h(t('back', 'Back'))}</button></div>
       </div>` + checkedHtml();
     const groups = ORDER.map((sev) => {
       const list = issues.map((i, idx) => [i, idx]).filter(([i]) => i.severity === sev && !dismissalOf(i));
@@ -246,14 +255,14 @@
 
   // ---------- chrome ----------
   const btn = SC.addHeaderButton({
-    id: 'btn-health', label: PLAN ? 'Review' : 'Health', icon: 'health',
+    id: 'btn-health', label: PLAN ? t('review', 'Review') : t('health', 'Health'), icon: 'health',
     onClick: () => (isOpen ? closeList() : openList()),
   });
   const badge = document.createElement('span');
   badge.className = 'badge';
   function updateButton() {
     const n = urgent();
-    btn.title = `${PLAN ? 'Design review' : 'Health check'}: ${n ? headline() : 'nothing urgent'}`;
+    btn.title = `${PLAN ? t('designReview', 'Design review') : t('healthCheck', 'Health check')}: ${n ? headline() : t('nothingUrgent', 'nothing urgent').toLowerCase()}`;
     btn.querySelector('svg.i').innerHTML = SC.icons[n ? 'health' : 'check'];
     if (n) {
       badge.textContent = n > 99 ? '99+' : String(n);
@@ -276,7 +285,7 @@
   SC.on('panel', () => { if (isOpen && openedAt && where() !== openedAt) { isOpen = false; SC.closePanel(); } });
 
   SC.addPanelSection('overview', () => ({
-    html: `<div class="sec"><h3>${PLAN ? 'Design review' : 'Health'}</h3><div class="list"><a class="row" data-hc-open>
+    html: `<div class="sec"><h3>${h(PLAN ? t('designReview', 'Design review') : t('health', 'Health'))}</h3><div class="list"><a class="row" data-hc-open>
         <span class="dot" style="background:${headColor()}"></span>
         <span class="rt"><div class="rn">${h(headline())}</div><div class="rd">${active().length ? ORDER.filter(count).map((s) => `${count(s)} ${SEV[s].word}`).join(' · ') : PLAN ? 'Quick automatic check of the plan' : gaps.length ? `${h(gaps.map((c) => c.label).join(' and '))}: nothing found to check` : 'Quick automatic check of secrets, open endpoints and leftover files'}</div></span>
         <span class="rc">${SC.iconI('right')}</span></a></div></div>`,
@@ -294,6 +303,6 @@
       hits.push(issueHtml(issue, idx, exact || (inside.length > 1 || inside[0] !== itemId ? `Affects ${SC.plural(inside.length, 'place')} in here` : '')));
     });
     if (!hits.length) return '';
-    return { html: `<div class="sec"><h3>${PLAN ? 'Design review' : 'Health'} <span class="c">${hits.length}</span></h3>${hits.slice(0, 6).join('')}${hits.length > 6 ? `<div class="more" data-hc-open style="cursor:pointer">+${hits.length - 6} more in the ${CHECK}</div>` : ''}</div>`, bind: (el) => { bindIssues(el); el.querySelector('[data-hc-open]')?.addEventListener('click', openList); } };
+    return { html: `<div class="sec"><h3>${h(PLAN ? t('designReview', 'Design review') : t('health', 'Health'))} <span class="c">${hits.length}</span></h3>${hits.slice(0, 6).join('')}${hits.length > 6 ? `<div class="more" data-hc-open style="cursor:pointer">+${hits.length - 6} more in the ${CHECK}</div>` : ''}</div>`, bind: (el) => { bindIssues(el); el.querySelector('[data-hc-open]')?.addEventListener('click', openList); } };
   });
 })();

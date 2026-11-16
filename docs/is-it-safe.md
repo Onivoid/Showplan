@@ -16,7 +16,7 @@ Plugins for Claude Code and Codex can run code on your computer, so it's worth a
 ### The network
 
 - **The map's server** (`floorplan/serve.mjs`) listens on `127.0.0.1` only, so other machines can't reach it. It answers only to `127.0.0.1` and `localhost` at its own port, and its API needs a token that only the map page receives.
-- **One outbound request: the Showplan Cloud waitlist,** sent only if you type your email into the card on the map and click to join. It goes to `floorplan-waitlist-690500262396.us-central1.run.app` and carries your email and "just me" or "with my team". Details in [Privacy and security](privacy-and-security.md#floorplan-cloud-waitlist).
+- **One outbound request: the Showplan Cloud waitlist,** sent only if you type your email into the card on the map and click to join. It goes to `floorplan-waitlist-690500262396.us-central1.run.app` and carries your email and "just me" or "with my team". Details in [Privacy and security](privacy-and-security.md#showplan-cloud-waitlist).
 - **The map page loads nothing from the internet.** Its layout engine and fonts are built into the file. It only links to documentation, which opens when you click.
 - **The page enforces that itself.** Every map carries a Content-Security-Policy: only the page's own scripts run (each is allowed by its SHA-256 hash, computed when the page is written), and images and fonts can only come from inside the file. An **exported copy** may contact nothing at all (`connect-src 'none'`); `floorplan/index.html` and the page the map's server serves may contact only that local server (`connect-src 'self'`), for asking questions, live reload, flows and Export. So even if text from a repository ever slipped past the map's escaping and became script, it couldn't send the map anywhere. The copy made for the Claude app (`--artifact`) has no policy of its own, because the Claude app runs its own code in that page and applies its own rules.
 - **Reporting a false alarm is yours to send.** If you tick the box under **Not a problem** in Health, the map opens a new GitHub issue in your browser with the text filled in, shown to you first. Nothing goes anywhere unless you submit it there.
@@ -80,13 +80,11 @@ node --test tests/supply-chain.test.mjs
 Every release includes `CHECKSUMS.txt`: a SHA-256 fingerprint of every file the plugin runs from (the skill, the plugin manifests and the marketplace files). To compare your installed copy with the release on GitHub:
 
 ```bash
-git clone --depth 1 --branch floorplan--v<version> https://github.com/haydenschmitty/floorplan floorplan-check
-node floorplan-check/tools/checksums.mjs --check <installed folder>
+git clone --depth 1 --branch <version> https://github.com/Onivoid/Showplan showplan-check
+node showplan-check/tools/checksums.mjs --check <installed folder>
 ```
 
-`<version>` is the version you have (`claude plugin list` or `codex plugin list` shows it). The installed folder is:
-- **Claude Code:** `~/.claude/plugins/cache/floorplan/floorplan/<version>`
-- **Codex:** `~/.codex/plugins/cache/floorplan/floorplan/<version>`
+`<version>` is the version you have (`claude plugin list`, `codex plugin list`, or the README badge). The installed folder is typically under your agent’s plugins/skills cache for `showplan`.
 
 It prints either that all files are identical, or which ones changed, are extra or are missing.
 

@@ -30,14 +30,19 @@ Arguments: $ARGUMENTS
 
 ## Language
 
-Generate the **entire** map content in the user's language (or an explicitly requested language):
+Generate the **entire** map in the user's language (or an explicitly requested language). Outside technical jargon and product names, **no English words** when the map language is not English.
+
+Must be in that language:
 
 - every node `label` and `summary`, `project.summary`, tour titles/notes, flow titles/notes
 - every file and route `name` / `description`
 - every recent-work `title`, `request`, `summary`, and item `note`
-- your final report to the user
+- Ask answers and your final report to the user
+- **Health** (titles, details, fix prompts, "what was checked"): `build.mjs` localizes to **French** when `"language": "fr"`. For other languages, write `floorplan/locale.json` with a `"health"` overlay (`issues` by id, `checked` by check id) and rebuild. Chrome strings live under `"ui"`.
 
-Detect the language from the conversation (the language the user is writing in). If they ask for a specific language ("en français", "in English", `language: es`), use that. Set `"language"` in `architecture.json` to a short tag (`fr`, `en`, `es`, …) so later refreshes stay consistent. Do not leave labels or descriptions in English unless that is the chosen language. Product names (Stripe, Postgres, …) stay as-is. Reference examples in this skill may be English; translate the *content you write*, don't copy the example language.
+Detect the language from the conversation. If they ask for a specific language ("en français", "in English", `language: es`), use that. Set `"language"` in `architecture.json` to a short tag (`fr`, `en`, `es`, …) so later refreshes stay consistent. Product names (Stripe, Postgres, …) stay as-is. Reference examples in this skill may be English; translate the *content you write*, don't copy the example language.
+
+**Voice.** Write like a clear human, not a chatbot. Short concrete sentences; lead with what the thing does; avoid filler, inflated claims, and stock AI phrasing. See [references/writing-descriptions.md](references/writing-descriptions.md) and [references/voice.md](references/voice.md).
 
 ## Skill folder (Cursor-first)
 
@@ -98,7 +103,7 @@ Do only what NEXT asks:
 - run describe.mjs (step 6), which now only produces worksheets for the new and flagged items;
 - check module summaries and flows if the change was large.
 
-A typical refresh after a few hours of work is a handful of worksheet entries. Then mark recent work (step 7), and show it and report (step 8). Always show it, even when nothing changed: the user asked to see their floorplan.
+A typical refresh after a few hours of work is a handful of worksheet entries. Then mark recent work (step 7), and show it and report (step 8). Always show it, even when nothing changed: the user asked to see their showplan.
 
 ## Workflow (first run)
 
